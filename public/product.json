@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1,
+    "name": "Custom Lithophane Lamp",
+    "description": "3D printed photo lamp with custom image",
+    "price": 35.00,
+    "image": "images/lithophane-lamp.jpg",
+    "category": "Baby"
+  },
+  {
+    "id": 2,
+    "name": "Pet Relief Sculpture",
+    "description": "Relief sculpture of your pet in detailed PLA",
+    "price": 28.00,
+    "image": "images/pet-relief.jpg",
+    "category": "Pet"
+  },
+  {
+    "id": 3,
+    "name": "Laser Engraved Wedding Sign",
+    "description": "Elegant laser engraved wood sign for weddings",
+    "price": 45.00,
+    "image": "images/wedding-sign.jpg",
+    "category": "Wedding"
+  },
+  
+
+  {
+    "id": 4,
+    "name": "3D Baby Name Keepsake",
+    "description": "Personalized 3D-printed name plaque for nursery decor",
+    "price": 22.00,
+    "image": "images/baby-name-keepsake.jpg",
+    "category": "Baby"
+  },
+  {
+    "id": 5,
+    "name": "Baby Footprint Ornament",
+    "description": "Laser-cut acrylic ornament capturing newborn footprints",
+    "price": 18.00,
+    "image": "images/baby-footprint-ornament.jpg",
+    "category": "Baby"
+  },
+  {
+    "id": 6,
+    "name": "3D Printed Baby Mobile",
+    "description": "Whimsical hanging mobile with stars and clouds",
+    "price": 30.00,
+    "image": "images/baby-mobile.jpg",
+    "category": "Baby"
+  },
+  {
+    "id": 7,
+    "name": "Personalized Baby Milestone Discs",
+    "description": "Set of 12 engraved discs to mark monthly milestones",
+    "price": 25.00,
+    "image": "images/baby-milestone-discs.jpg",
+    "category": "Baby"
+  },
+
+
+  {
+    "id": 8,
+    "name": "Paw Print Keychain",
+    "description": "Mini 3D-printed keychain with your pet’s paw print",
+    "price": 12.00,
+    "image": "images/paw-print-keychain.jpg",
+    "category": "Pet"
+  },
+  {
+    "id": 9,
+    "name": "Custom Pet Portrait Relief",
+    "description": "Laser-engraved wood relief of your pet’s face",
+    "price": 32.00,
+    "image": "images/pet-portrait-relief.jpg",
+    "category": "Pet"
+  },
+  {
+    "id": 10,
+    "name": "3D Pet ID Tag",
+    "description": "Durable engraved pet ID tag with custom text",
+    "price": 15.00,
+    "image": "images/pet-id-tag.jpg",
+    "category": "Pet"
+  },
+  {
+    "id": 11,
+    "name": "Laser-Engraved Pet Memorial Plaque",
+    "description": "Wooden plaque memorializing a beloved pet",
+    "price": 27.00,
+    "image": "images/pet-memorial-plaque.jpg",
+    "category": "Pet"
+  },
+
+
+  {
+    "id": 12,
+    "name": "Couple Silhouette Sculpture",
+    "description": "3D-printed tabletop silhouette of bride & groom",
+    "price": 40.00,
+    "image": "images/couple-silhouette.jpg",
+    "category": "Wedding"
+  },
+  {
+    "id": 13,
+    "name": "Personalized Cake Topper",
+    "description": "Laser-cut acrylic cake topper with custom names",
+    "price": 20.00,
+    "image": "images/cake-topper.jpg",
+    "category": "Wedding"
+  },
+  {
+    "id": 14,
+    "name": "Wedding Invitation Keepsake",
+    "description": "3D-printed framed replica of your wedding invite",
+    "price": 50.00,
+    "image": "images/invitation-keepsake.jpg",
+    "category": "Wedding"
+  },
+  {
+    "id": 15,
+    "name": "Engraved Table Numbers",
+    "description": "Set of 10 wooden table number signs",
+    "price": 35.00,
+    "image": "images/table-numbers.jpg",
+    "category": "Wedding"
+  }
+]

@@ -1,0 +1,251 @@
+/* styles.css */
+:root {
+  /* Chic Beige Palette */
+  --beige-light:  #EEE8E2;
+  --beige-medium: #D0BFB3;
+  --beige-dark:   #AA8D7A;
+  --accent-brown: #866144;
+  --accent-blush: #D5A18A;
+  --accent-cream: #F4D9C4;
+  --text-primary:   #4A3F3A;
+  --text-secondary: #6E5D58;
+  --shadow-light:   rgba(0, 0, 0, 0.06);
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--beige-light);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  background: var(--beige-medium);
+  padding: 15px 0;
+  box-shadow: 0 4px 10px var(--shadow-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Cherry Bomb One', cursive;
+  font-size: 2.6rem;
+  color: var(--accent-brown);
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: var(--accent-brown);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: background 0.3s ease;
+}
+
+.nav-links a:hover {
+  background: var(--accent-blush);
+  color: var(--accent-cream);
+}
+
+/* Hero */
+.hero {
+  background: var(--beige-medium);
+  padding: 80px 20px;
+  margin-bottom: 40px;
+  border-radius: 0 0 40px 40px;
+}
+
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.hero-text h2 {
+  font-family: 'Cherry Bomb One', cursive;
+  font-size: 3.2rem;
+  color: var(--accent-brown);
+  margin-bottom: 20px;
+}
+
+.hero-text p {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+}
+
+.btn {
+  background: var(--accent-brown);
+  color: var(--accent-cream);
+  padding: 16px 36px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: var(--accent-dark, var(--accent-blush));
+}
+
+/* Shop Section */
+.shop {
+  padding: 60px 20px;
+  background: var(--beige-light);
+}
+
+.shop h2 {
+  text-align: center;
+  font-family: 'Cherry Bomb One', cursive;
+  font-size: 2.6rem;
+  color: var(--accent-brown);
+  margin-bottom: 20px;
+}
+
+.shop-intro p {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.occasion-tags {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.occasion-btn {
+  background: var(--beige-medium);
+  color: var(--accent-brown);
+  border: none;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.occasion-btn.active,
+.occasion-btn:hover {
+  background: var(--accent-brown);
+  color: var(--accent-cream);
+}
+
+.product-grid.neutral-theme {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 30px;
+}
+
+.product-card {
+  background: var(--beige-medium);
+  border: 2px solid var(--accent-brown);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px var(--shadow-light);
+}
+
+.product-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.product-card h3 {
+  font-size: 1.2rem;
+  color: var(--accent-brown);
+  margin-bottom: 8px;
+}
+
+.product-card p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.product-card button {
+  background: var(--accent-brown);
+  color: var(--accent-cream);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+.product-card button:hover {
+  background: var(--accent-blush);
+}
+
+/* Footer */
+footer {
+  background: var(--beige-dark);
+  color: var(--accent-cream);
+  padding: 40px 20px;
+}
+
+.footer-section h3 {
+  color: var(--accent-cream);
+}
+
+.footer-section a {
+  color: var(--accent-cream);
+}
+
+.footer-section a:hover {
+  color: var(--accent-blush);
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-content,
+  .shop-intro,
+  .occasion-tags {
+    flex-direction: column;
+    align-items: center;
+  }
+  .occasion-tags {
+    gap: 10px;
+  }
+}

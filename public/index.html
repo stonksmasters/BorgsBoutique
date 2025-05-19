@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BorgsBoutique — Exquisite 3D Keepsakes</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <h1 class="logo">BorgsBoutique</h1>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#shop">Shop</a></li>
+          <li><a href="#cart"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <h2>Elevate Life’s Milestones</h2>
+        <p>Craft bespoke 3D‑printed heirlooms for celebrations—birthdays, weddings, and every cherished moment.</p>
+        <a href="#shop" class="btn">Discover Our Collection</a>
+      </div>
+      <div class="hero-images">
+        <img src="/images/hero-lamp.jpg" alt="Elegant 3D printed lamp" class="hero-main-img">
+      </div>
+    </div>
+  </section>
+
+  <!-- Shop Section -->
+  <section id="shop" class="shop">
+    <div class="container">
+      <h2>Chic Creations</h2>
+      <div class="shop-intro">
+        <p>Immerse in our neutral-toned collections—perfectly refined for weddings, graduations, and elegant events.</p>
+      </div>
+      <div class="occasion-tags">
+        <button class="occasion-btn active" data-category="all">All</button>
+        <button class="occasion-btn" data-category="wedding">Weddings</button>
+        <button class="occasion-btn" data-category="graduation">Graduations</button>
+        <button class="occasion-btn" data-category="anniversary">Anniversaries</button>
+      </div>
+      <div class="product-grid neutral-theme"></div>
+    </div>
+  </section>
+
+  <!-- Rest of page unchanged -->
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="container">
+      <h2>Need Assistance?</h2>
+      <div class="faq-item">
+        <button class="faq-question">What is your production timeframe? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-answer">
+          <p>Design approval within 2 business days. Production and delivery complete in 5–7 business days.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-question">Are materials pet-safe? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-answer">
+          <p>All our filaments are non-toxic and safe for households with pets and children.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter">
+    <div class="container newsletter-content">
+      <div class="newsletter-text">
+        <h2>Stay in the Inner Circle</h2>
+        <p>Subscribe for exclusive previews and receive 10% off your inaugural creation.</p>
+      </div>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email" required>
+        <button type="submit" class="btn">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-section">
+        <h3>BorgsBoutique</h3>
+        <p>Exceptional 3D‑printed keepsakes crafted since 2023.</p>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-pinterest"></i></a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h3>Navigate</h3>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#shop">Shop</a></li>
+          <li><a href="#">Custom Orders</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Contact</h3>
+        <p><i class="fas fa-envelope"></i> hello@BorgsBoutique.com</p>
+        <p><i class="fas fa-phone"></i> (555) 123‑4567</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 BorgsBoutique • All rights reserved</p>
+    </div>
+  </footer>
+
+  <script src="/js/script.js"></script>
+</body>
+</html>
