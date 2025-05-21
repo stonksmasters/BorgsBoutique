@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Luxury 3D printed keepsakes for weddings, graduations, and special moments. Elevate your celebrations with BorgsBoutique." />
   <title>BorgsBoutique — Exquisite 3D Keepsakes</title>
   <link rel="stylesheet" href="/css/styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
+  <!-- Header with Mini-Cart Dropdown -->
   <header>
     <div class="container nav">
       <h1 class="logo">BorgsBoutique</h1>
@@ -16,13 +18,26 @@
         <ul class="nav-links">
           <li><a href="#home">Home</a></li>
           <li><a href="#shop">Shop</a></li>
-          <li><a href="#cart"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a></li>
+          <li class="cart-link">
+            <a href="#cart"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
+            <div class="mini-cart-dropdown">
+              <div class="mini-cart-content">
+                <p>Your cart is empty.</p>
+              </div>
+            </div>
+          </li>
         </ul>
+        <!-- Hamburger menu for mobile -->
+        <div class="nav-toggle" aria-label="Toggle navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </nav>
     </div>
   </header>
 
-  <!-- Hero -->
+  <!-- Hero Section with 3D Model -->
   <section id="home" class="hero">
     <div class="container hero-content">
       <div class="hero-text">
@@ -31,31 +46,82 @@
         <a href="#shop" class="btn">Discover Our Collection</a>
       </div>
       <div class="hero-images">
-        <img src="/images/hero-lamp.jpg" alt="Elegant 3D printed lamp" class="hero-main-img">
+        <canvas id="hero-3d-model" width="400" height="300" aria-label="3D model of featured product">
+          <p>3D model requires JavaScript and WebGL support.</p>
+        </canvas>
       </div>
     </div>
   </section>
 
-  <!-- Shop Section -->
+  <!-- Shop Section with Breadcrumbs and Quick View Modal -->
   <section id="shop" class="shop">
     <div class="container">
+      <nav class="breadcrumbs" aria-label="Breadcrumb navigation">
+        <a href="#home">Home</a> > <span>Shop</span>
+      </nav>
       <h2>Chic Creations</h2>
       <div class="shop-intro">
         <p>Immerse in our neutral-toned collections—perfectly refined for weddings, graduations, and elegant events.</p>
       </div>
       <div class="occasion-tags">
         <button class="occasion-btn active" data-category="all">All</button>
-        <button class="occasion-btn" data-category="wedding">Weddings</button>
-        <button class="occasion-btn" data-category="graduation">Graduations</button>
-        <button class="occasion-btn" data-category="anniversary">Anniversaries</button>
+        <button class="occasion-btn" data-category="Baby">Baby</button>
+        <button class="occasion-btn" data-category="Pet">Pet</button>
+        <button class="occasion-btn" data-category="Wedding">Wedding</button>
+        <button class="occasion-btn" data-category="Graduation">Graduation</button>
+        <button class="occasion-btn" data-category="Anniversary">Anniversary</button>
       </div>
       <div class="product-grid neutral-theme"></div>
     </div>
+    <!-- Quick View Modal -->
+    <div id="quick-view-modal" class="modal" role="dialog" aria-labelledby="modal-product-name" aria-hidden="true" tabindex="-1">
+      <div class="modal-content">
+        <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
+        <div class="product-details">
+          <canvas id="product-3d-model" width="400" height="300" aria-label="3D model of product">
+            <p>3D model requires JavaScript and WebGL support.</p>
+          </canvas>
+          <div class="product-info">
+            <h3 id="modal-product-name"></h3>
+            <p id="modal-product-description"></p>
+            <span id="modal-product-price"></span>
+            <div id="customization-options" role="region" aria-label="Product customization options"></div>
+            <button id="add-to-cart-btn">Add to Cart</button>
+          </div>
+        </div>
+        <div class="related-products">
+          <h4>Related Products</h4>
+          <div id="related-products-grid"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- Rest of page unchanged -->
+  <!-- Testimonials Section -->
+  <section class="testimonials">
+    <div class="container">
+      <h2>What Our Customers Say</h2>
+      <div class="testimonial-grid">
+        <p>Testimonials loading...</p>
+      </div>
+    </div>
+  </section>
 
-  <!-- FAQ -->
+  <!-- Cart Section with Thumbnails and Quantity Inputs -->
+  <section id="cart" class="cart">
+    <div class="container">
+      <h2>Your Cart</h2>
+      <div class="cart-items">
+        <!-- Populated via JS -->
+      </div>
+      <div class="cart-total">
+        <h3>Total: $0.00</h3>
+        <button class="checkout-btn">Proceed to Checkout</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
   <section class="faq">
     <div class="container">
       <h2>Need Assistance?</h2>
@@ -74,7 +140,7 @@
     </div>
   </section>
 
-  <!-- Newsletter -->
+  <!-- Newsletter Section -->
   <section class="newsletter">
     <div class="container newsletter-content">
       <div class="newsletter-text">
@@ -82,7 +148,7 @@
         <p>Subscribe for exclusive previews and receive 10% off your inaugural creation.</p>
       </div>
       <form class="newsletter-form">
-        <input type="email" placeholder="Enter your email" required>
+        <input type="email" placeholder="Enter your email" required aria-label="Email address" />
         <button type="submit" class="btn">Subscribe</button>
       </form>
     </div>
@@ -95,9 +161,9 @@
         <h3>BorgsBoutique</h3>
         <p>Exceptional 3D‑printed keepsakes crafted since 2023.</p>
         <div class="social-icons">
-          <a href="#"><i class="fab fa-instagram"></i></a>
-          <a href="#"><i class="fab fa-facebook"></i></a>
-          <a href="#"><i class="fab fa-pinterest"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
         </div>
       </div>
       <div class="footer-section">
@@ -116,10 +182,19 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2025 BorgsBoutique • All rights reserved</p>
+      <p>© 2025 BorgsBoutique • All rights reserved</p>
     </div>
   </footer>
 
-  <script src="/js/script.js"></script>
+  <!-- Floating Chat Widget -->
+  <div class="chat-widget" aria-label="Live chat support">
+    <!-- Chat service script will populate this -->
+  </div>
+
+  <!-- Scripts -->
+  <script defer type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer type="text/javascript" src="/js/script.js"></script>
 </body>
 </html>
