@@ -33,12 +33,26 @@ document.addEventListener('DOMContentLoaded', () => {
       updateWishlistButtons();
       handleHashChange();
       renderHero3DModel();
+      setupIntersectionObserver();
     } catch (error) {
       console.error('Failed to load products:', error);
       showToast('Unable to load products. Please try again.', 'error');
     }
   }
   fetchProducts();
+
+  // Intersection Observer for section animations
+  function setupIntersectionObserver() {
+    const sections = document.querySelectorAll('.hero, .shop, .testimonials, .faq');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(section => observer.observe(section));
+  }
 
   // Mobile menu toggle with outside click close
   const navToggle = document.querySelector('.nav-toggle');
@@ -50,9 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   navToggle.addEventListener('click', toggleMobileMenu);
   navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      toggleMobileMenu();
-    });
+    link.addEventListener('click', toggleMobileMenu);
   });
   document.addEventListener('click', (e) => {
     if (!navLinks.contains(e.target) && !navToggle.contains(e.target) && navLinks.classList.contains('nav-open')) {
@@ -94,18 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Newsletter form submission with validation
-  document.querySelector('.newsletter-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const emailInput = e.target.querySelector('input[type="email"]');
-    const email = emailInput.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('Please enter a valid email address.', 'error');
-      return;
-    }
-    console.debug('Newsletter subscription:', email);
-    showToast('Thank you for subscribing!', 'success');
-    emailInput.value = '';
+  // Newsletter form submission with validation (main and footer)
+  document.querySelectorAll('.newsletter-form, .footer-newsletter form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emailInput = e.target.querySelector('input[type="email"]');
+      const email = emailInput.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        return;
+      }
+      console.debug('Newsletter subscription:', email);
+      showToast('Thank you for subscribing!', 'success');
+      emailInput.value = '';
+    });
   });
 
   // Close modal with escape key support
@@ -115,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && modal?.style.display === 'block') closeModal();
   });
 
-  // Render products with loading state
+  // Render products with new-badge support
   function renderProducts(category = 'all') {
     const grid = document.querySelector('.product-grid');
     if (!grid) {
@@ -138,7 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = document.createElement('div');
       card.className = 'product-card';
       card.innerHTML = `
-        <div class="category-badge">${p.category}</div>
+        ${p.isNew ? '<span class="new-badge">New</span>' : ''}
+        <span class="category-badge">${p.category}</span>
         <button class="wishlist-btn" data-id="${p.id}" aria-label="Add ${p.name} to wishlist"><i class="fas fa-heart"></i></button>
         <img src="${p.image}" alt="${p.name}" loading="lazy" />
         <div class="content">
@@ -154,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.appendChild(card);
     });
 
-    // Add event listeners with debugging
     document.querySelectorAll('.quick-view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         console.debug('Quick view clicked for product ID:', btn.dataset.id);
@@ -180,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProducts(category);
   }
 
-  // Add product to cart with validation
+  // Add product to cart
   function addToCart(productId) {
     const product = products.find(p => p.id == productId);
     if (!product) {
@@ -277,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const div = document.createElement('div');
       div.className = 'cart-item';
       div.innerHTML = `
-        <img src="${product.image}" alt="${product.name}" width="50" />
+        <img src="${product.image}" alt="${product.name}" width="50" loading="lazy" />
         <h3>${product.name}</h3>
         <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" aria-label="Quantity for ${product.name}"></p>
         <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
@@ -348,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const div = document.createElement('div');
       div.className = 'mini-cart-item';
       div.innerHTML = `
-        <img src="${product.image}" alt="${product.name}" width="30" />
+        <img src="${product.image}" alt="${product.name}" width="30" loading="lazy" />
         <span>${product.name} x ${item.quantity}</span>
         <span>$${(product.price * item.quantity).toFixed(2)}</span>
       `;
@@ -356,9 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Open quick view modal
+  // Open quick view modal with carousel
   function openQuickView(productId) {
-    console.debug('Opening quick view for product ID:', productId);
     const product = products.find(p => p.id == productId);
     if (!product) {
       console.error('Product not found:', productId);
@@ -377,27 +390,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const descElement = modal.querySelector('#modal-product-description');
     const priceElement = modal.querySelector('#modal-product-price');
     const modelElement = document.getElementById('product-3d-model');
+    const carousel = modal.querySelector('.carousel');
     const customizationDiv = document.getElementById('customization-options');
     const relatedGrid = document.getElementById('related-products-grid');
     const addToCartBtn = modal.querySelector('#add-to-cart-btn');
 
-    if (!nameElement || !descElement || !priceElement || !modelElement || !customizationDiv || !relatedGrid || !addToCartBtn) {
+    if (!nameElement || !descElement || !priceElement || !modelElement || !carousel || !customizationDiv || !relatedGrid || !addToCartBtn) {
       console.error('One or more modal elements missing:', {
-        nameElement, descElement, priceElement, modelElement, customizationDiv, relatedGrid, addToCartBtn
+        nameElement, descElement, priceElement, modelElement, carousel, customizationDiv, relatedGrid, addToCartBtn
       });
       showToast('Error displaying product details.', 'error');
       return;
     }
 
-    console.debug('Product details:', { name: product.name, modelUrl: product.modelUrl });
     nameElement.textContent = product.name || 'Unknown Product';
     descElement.textContent = product.description || 'No description available.';
     priceElement.textContent = product.price ? `$${product.price.toFixed(2)}` : 'Price unavailable';
 
-    // Clear previous 3D model content
+    // Populate carousel
+    carousel.innerHTML = '';
+    (product.images || [product.image]).forEach((img, index) => {
+      const imgElement = document.createElement('img');
+      imgElement.src = img;
+      imgElement.alt = `${product.name} view ${index + 1}`;
+      imgElement.setAttribute('loading', 'lazy');
+      carousel.appendChild(imgElement);
+    });
+
+    // Populate customization options
+    customizationDiv.innerHTML = '';
+    if (product.customization) {
+      customizationDiv.innerHTML = `
+        <label for="custom-input">${product.customization.label}</label>
+        ${product.customization.type === 'select' ? 
+          `<select id="custom-input">
+             ${product.customization.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+           </select>` :
+          `<input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}">`
+        }
+      `;
+    } else {
+      customizationDiv.innerHTML = '<p>No customization available.</p>';
+    }
+
+    // Populate related products
+    relatedGrid.innerHTML = '';
+    (product.relatedProducts || []).forEach(relatedId => {
+      const related = products.find(p => p.id == relatedId);
+      if (related) {
+        const div = document.createElement('div');
+        div.className = 'related-product';
+        div.innerHTML = `
+          <img src="${related.image}" alt="${related.name}" loading="lazy" />
+          <span>${related.name}</span>
+        `;
+        relatedGrid.appendChild(div);
+      }
+    });
+
+    // Render 3D model
     modelElement.innerHTML = '<p>Loading 3D model...</p>';
     if (product.modelUrl) {
-      // Wait for modal to be fully visible
       modal.style.opacity = '0';
       modal.style.display = 'block';
       setTimeout(() => {
@@ -409,30 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('No modelUrl for product:', product.name);
     }
 
-    if (product.customization) {
-      customizationDiv.innerHTML = `
-        <label for="custom-input">${product.customization.label}</label>
-        <input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}">
-      `;
-    } else {
-      customizationDiv.innerHTML = '<p>No customization available.</p>';
-    }
-
-    relatedGrid.innerHTML = '';
-    (product.relatedProducts || []).forEach(relatedId => {
-      const related = products.find(p => p.id == relatedId);
-      if (related) {
-        const div = document.createElement('div');
-        div.className = 'related-product';
-        div.innerHTML = `
-          <img src="${related.image}" alt="${related.name}" width="50" />
-          <span>${related.name}</span>
-        `;
-        relatedGrid.appendChild(div);
-      }
-    });
-
-    // Remove previous listeners to prevent duplicates
+    // Add to cart button
     const newBtn = addToCartBtn.cloneNode(true);
     addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
     newBtn.dataset.id = productId;
@@ -459,7 +489,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render 3D model with Three.js and OrbitControls
   function render3DModel(modelUrl, canvas) {
-    console.debug(`Attempting to render 3D model from ${modelUrl} in`, canvas);
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       console.error('Invalid canvas element for 3D rendering:', canvas);
       canvas.innerHTML = '<p>3D rendering failed.</p>';
@@ -467,7 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Ensure canvas has valid dimensions
     const defaultWidth = 400;
     const defaultHeight = 300;
     const width = Math.min(canvas.parentElement.clientWidth || defaultWidth, defaultWidth);
@@ -478,14 +506,12 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.style.height = `${height}px`;
     console.debug('Canvas dimensions set:', { width, height });
 
-    // Set up scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 0); // Transparent background
+    renderer.setClearColor(0x000000, 0);
 
-    // Check WebGL context
     const gl = renderer.getContext();
     if (!gl) {
       console.error('WebGL context not available.');
@@ -494,14 +520,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(1, 1, 1).normalize();
     scene.add(directionalLight);
 
-    // Add OrbitControls
     const controls = new THREE.OrbitControls(camera, canvas);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -509,7 +533,6 @@ document.addEventListener('DOMContentLoaded', () => {
     controls.minDistance = 1;
     controls.maxDistance = 10;
 
-    // Load GLTF model
     const loader = new THREE.GLTFLoader();
     loader.load(
       modelUrl,
@@ -518,7 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const model = gltf.scene;
         scene.add(model);
 
-        // Center and scale model
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
@@ -527,7 +549,6 @@ document.addEventListener('DOMContentLoaded', () => {
         model.scale.set(scale, scale, scale);
         model.position.sub(center.multiplyScalar(scale));
 
-        // Use fallback material to avoid shader issues
         model.traverse((child) => {
           if (child.isMesh && child.material) {
             child.material = new THREE.MeshStandardMaterial({
@@ -538,11 +559,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        // Position camera
         camera.position.set(0, 0, 3);
         controls.update();
 
-        // Animation loop
         function animate() {
           requestAnimationFrame(animate);
           controls.update();
@@ -560,7 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     );
 
-    // Handle window resize
     const resizeHandler = () => {
       const newWidth = Math.min(canvas.parentElement.clientWidth || defaultWidth, defaultWidth);
       const newHeight = Math.min(canvas.parentElement.clientHeight || defaultHeight, defaultHeight);
@@ -573,7 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.addEventListener('resize', resizeHandler);
 
-    // Cleanup on modal close
     modal.addEventListener('transitionend', (e) => {
       if (e.propertyName === 'opacity' && modal.style.display === 'none') {
         window.removeEventListener('resize', resizeHandler);

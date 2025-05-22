@@ -61,7 +61,7 @@
     "name": "Baby Footprint Ornament",
     "description": "Laser-cut acrylic ornament capturing newborn footprints",
     "price": 18.00,
-    "image": "models/PetRelief.glb",
+    "image": "images/placeholder.png",
     "category": "Baby",
     "modelUrl": "models/PetRelief.glb",
     "customization": {

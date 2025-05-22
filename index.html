@@ -6,14 +6,16 @@
   <meta name="description" content="Luxury 3D printed keepsakes for weddings, graduations, and special moments. Elevate your celebrations with BorgsBoutique." />
   <title>BorgsBoutique — Exquisite 3D Keepsakes</title>
   <link rel="stylesheet" href="/css/styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
   <!-- Header with Mini-Cart Dropdown -->
   <header>
     <div class="container nav">
-      <h1 class="logo">BorgsBoutique</h1>
+      <a href="#home" class="logo">
+        <img src="/images/BBLogo.png" alt="BorgsBoutique Logo" />
+      </a>
       <nav>
         <ul class="nav-links">
           <li><a href="#home">Home</a></li>
@@ -71,7 +73,24 @@
         <button class="occasion-btn" data-category="Graduation">Graduation</button>
         <button class="occasion-btn" data-category="Anniversary">Anniversary</button>
       </div>
-      <div class="product-grid neutral-theme"></div>
+      <div class="product-grid neutral-theme">
+        <!-- Example product card for reference; populated via JS -->
+        <div class="product-card">
+          <span class="new-badge">New</span>
+          <span class="category-badge">Wedding</span>
+          <button class="wishlist-btn" aria-label="Add to wishlist"><i class="fas fa-heart"></i></button>
+          <img src="placeholder.jpg" alt="Product image" loading="lazy" />
+          <div class="content">
+            <h3>Sample Keepsake</h3>
+            <p>Exquisite 3D-printed wedding ornament.</p>
+            <span class="price">$49.99</span>
+            <div class="button-container">
+              <button class="quick-view-btn">Quick View</button>
+              <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- Quick View Modal -->
     <div id="quick-view-modal" class="modal" role="dialog" aria-labelledby="modal-product-name" aria-hidden="true" tabindex="-1">
@@ -81,17 +100,35 @@
           <canvas id="product-3d-model" width="400" height="300" aria-label="3D model of product">
             <p>3D model requires JavaScript and WebGL support.</p>
           </canvas>
+          <div class="carousel">
+            <!-- Example images; populated via JS -->
+            <img src="placeholder1.jpg" alt="Product view 1" loading="lazy" />
+            <img src="placeholder2.jpg" alt="Product view 2" loading="lazy" />
+          </div>
           <div class="product-info">
             <h3 id="modal-product-name"></h3>
             <p id="modal-product-description"></p>
             <span id="modal-product-price"></span>
-            <div id="customization-options" role="region" aria-label="Product customization options"></div>
-            <button id="add-to-cart-btn">Add to Cart</button>
+            <div id="customization-options" role="region" aria-label="Product customization options">
+              <!-- Example customization; populated via JS -->
+              <label for="color-option">Color</label>
+              <select id="color-option">
+                <option value="gold">Gold</option>
+                <option value="silver">Silver</option>
+              </select>
+            </div>
+            <button id="add-to-cart-btn" class="btn">Add to Cart</button>
           </div>
         </div>
         <div class="related-products">
           <h4>Related Products</h4>
-          <div id="related-products-grid"></div>
+          <div id="related-products-grid">
+            <!-- Example related product; populated via JS -->
+            <div class="related-product">
+              <img src="related-placeholder.jpg" alt="Related product" loading="lazy" />
+              <span>Related Keepsake</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -164,6 +201,13 @@
           <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
           <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+        </div>
+        <div class="footer-newsletter">
+          <h3>Newsletter</h3>
+          <form>
+            <input type="email" placeholder="Enter your email" required aria-label="Newsletter email" />
+            <button type="submit" class="btn">Subscribe</button>
+          </form>
         </div>
       </div>
       <div class="footer-section">
