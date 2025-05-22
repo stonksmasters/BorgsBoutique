@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentRenderer = null;
   let currentScene = null;
   let currentCamera = null;
+  let heroModelLoaded = false;
 
-  // Utility to dispose Three.js resources
+  // Dispose Three.js resources
   function disposeThreeJsResources() {
     if (currentRenderer) {
       currentRenderer.dispose();
@@ -30,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentCamera = null;
   }
 
-  // Toast notification with accessibility
+  // Toast notification
   function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Fetch products with caching
+  // Fetch products
   async function fetchProducts() {
     const cached = localStorage.getItem('products');
     if (cached) {
@@ -64,13 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('products', JSON.stringify(products));
       return products;
     } catch (error) {
-      console.error('Failed to load products:', error);
       showToast('Unable to load products. Please try again.', 'error');
       return [];
     }
   }
 
-  // Fetch testimonials with caching
+  // Fetch testimonials
   async function fetchTestimonials() {
     const cached = localStorage.getItem('testimonials');
     if (cached) return JSON.parse(cached);
@@ -81,16 +81,14 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('testimonials', JSON.stringify(data));
       return data;
     } catch (error) {
-      console.error('Error loading testimonials:', error);
       showToast('Unable to load testimonials.', 'info');
       return [];
     }
   }
 
-  // Render 3D model with cleanup
+  // Render 3D model
   function render3DModel(modelUrl, canvas) {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-      console.error('Invalid canvas:', canvas);
       canvas.innerHTML = '<p>3D rendering failed.</p>';
       showToast('3D rendering failed.', 'error');
       return;
@@ -98,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) {
-      console.error('WebGL not supported.');
       canvas.innerHTML = '<p>WebGL not supported on this device.</p>';
+      showToast('WebGL not supported.', 'error');
       return;
     }
 
@@ -158,13 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         animate();
       },
-      (xhr) => {
-        console.debug(`Model loading: ${Math.round((xhr.loaded / xhr.total) * 100)}%`);
-      },
+      undefined,
       (error) => {
-        console.error('GLTF load error:', error);
         canvas.innerHTML = '<p>Failed to load 3D model.</p>';
-        showToast('Unable to load 3D model.', 'error');
+        showToast('Unable to load 3D model. Please try again.', 'error');
       }
     );
 
@@ -175,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
       canvas.style.width = `${newWidth}px`;
-      canvas.style.height = `${newHeight}px`;
+      canvas.style.height = `${height}px`;
     };
     window.addEventListener('resize', resizeHandler);
 
@@ -185,22 +180,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Render hero 3D model
-  async function renderHero3DModel() {
-    if (window.innerWidth <= 768) {
-      document.getElementById('hero-3d-model').innerHTML = '<p>3D model disabled on mobile.</p>';
-      return;
-    }
-    const featuredProduct = products.find(p => p.featured) || products[0];
+  // Render hero 3D model when in view
+  function setupHero3DModel() {
+    const heroSection = document.getElementById('home');
     const heroCanvas = document.getElementById('hero-3d-model');
-    if (featuredProduct?.modelUrl && heroCanvas) {
-      render3DModel(featuredProduct.modelUrl, heroCanvas);
-    } else {
-      if (heroCanvas) heroCanvas.innerHTML = '<p>3D model not available.</p>';
-    }
+    if (!heroCanvas) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !heroModelLoaded) {
+        const featuredProduct = products.find(p => p.featured) || products[0];
+        if (featuredProduct?.modelUrl) {
+          heroModelLoaded = true;
+          render3DModel(featuredProduct.modelUrl, heroCanvas);
+        } else {
+          heroCanvas.innerHTML = '<p>3D model not available.</p>';
+        }
+      }
+    }, { threshold: 0.1 });
+    observer.observe(heroSection);
   }
 
-  // Render products with pagination
+  // Render products
   async function renderProducts(category = 'all') {
     const grid = document.querySelector('.product-grid');
     if (!grid) return;
@@ -316,11 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'block';
     modal.focus();
 
-    if (product.modelUrl && window.innerWidth > 768) {
-      modelElement.innerHTML = '<p>Loading 3D model...</p>';
+    modelElement.innerHTML = '<p>Loading 3D model...</p>';
+    if (product.modelUrl) {
       render3DModel(product.modelUrl, modelElement);
     } else {
-      modelElement.innerHTML = '<p>3D model disabled on mobile.</p>';
+      modelElement.innerHTML = '<p>3D model not available.</p>';
     }
 
     const newBtn = addToCartBtn.cloneNode(true);
@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWishlistButtons();
     handleHashChange();
     setupIntersectionObserver();
-    if (window.innerWidth > 768) renderHero3DModel();
+    setupHero3DModel();
   }
 
   // Event listeners
