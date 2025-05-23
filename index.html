@@ -23,7 +23,8 @@
   <meta name="twitter:image:alt" content="BorgsBoutique Logo" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
 <body>
   <!-- Header with Mini-Cart Dropdown -->
   <header>
@@ -63,9 +64,11 @@
         <a href="#shop" class="btn">Discover Our Collection</a>
       </div>
       <div class="hero-images">
-        <canvas id="hero-3d-model" width="400" height="300" aria-label="3D model of featured product">
-          <p>3D model requires JavaScript and WebGL support.</p>
-        </canvas>
+        <div class="canvas-container">
+          <canvas id="hero-3d-model" width="400" height="300" aria-label="3D model of featured product">
+            <p>3D model requires JavaScript and WebGL support.</p>
+          </canvas>
+        </div>
       </div>
     </div>
   </section>
@@ -115,9 +118,11 @@
       <div class="modal-content">
         <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
         <div class="product-details">
-          <canvas id="product-3d-model" width="400" height="300" aria-label="3D model of product">
-            <p>3D model requires JavaScript and WebGL support.</p>
-          </canvas>
+          <div class="canvas-container">
+            <canvas id="product-3d-model" width="400" height="300" aria-label="3D model of product">
+              <p>3D model requires JavaScript and WebGL support.</p>
+            </canvas>
+          </div>
           <div class="carousel">
             <!-- Example images; populated via JS -->
             <img src="placeholder1.jpg" alt="Product view 1" loading="lazy" />
