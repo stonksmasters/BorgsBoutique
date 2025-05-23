@@ -4,7 +4,7 @@
     "name": "Custom Lithophane Lamp",
     "description": "3D printed photo lamp with custom image",
     "price": 35.00,
-    "image": "images/placeholder.png",
+    "image": "images/LithophaneLamp.png",
     "category": "Baby",
     "modelUrl": "models/LithophaneLamp.glb",
     "customization": {
