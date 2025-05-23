@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentScene = null;
   let currentCamera = null;
   let heroModelLoaded = false;
+  let heroObserver = null;
 
   // Dispose Three.js resources
   function disposeThreeJsResources() {
     if (currentRenderer) {
+      currentRenderer.forceContextLoss();
       currentRenderer.dispose();
       currentRenderer = null;
     }
@@ -20,12 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (object.geometry) object.geometry.dispose();
         if (object.material) {
           if (Array.isArray(object.material)) {
-            object.material.forEach(mat => mat.dispose());
+            object.material.forEach(mat => {
+              if (mat.map) mat.map.dispose();
+              mat.dispose();
+            });
           } else {
-            object.material.dispose();
+            if (mat.map) mat.map.dispose();
+            mat.dispose();
           }
         }
       });
+      currentScene.clear();
       currentScene = null;
     }
     currentCamera = null;
@@ -51,15 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Fetch products
+  // Fetch products with cache-busting
   async function fetchProducts() {
-    const cached = localStorage.getItem('products');
-    if (cached) {
-      products = JSON.parse(cached);
-      return products;
-    }
+    localStorage.removeItem('products'); // Clear stale cache
     try {
-      const response = await fetch('/product.json');
+      const cacheBuster = `?v=${Date.now()}`;
+      const response = await fetch(`/product.json${cacheBuster}`);
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
       products = await response.json();
       localStorage.setItem('products', JSON.stringify(products));
@@ -159,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       undefined,
       (error) => {
         canvas.innerHTML = '<p>Failed to load 3D model.</p>';
-        showToast('Unable to load 3D model. Please try again.', 'error');
+        showToast(`Unable to load 3D model: ${modelUrl}. Please try again.`, 'error');
       }
     );
 
@@ -170,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
       canvas.style.width = `${newWidth}px`;
-      canvas.style.height = `${height}px`;
+      canvas.style.height = `${newHeight}px`;
     };
     window.addEventListener('resize', resizeHandler);
 
@@ -180,13 +184,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Render hero 3D model when in view
+  // Setup hero 3D model
   function setupHero3DModel() {
     const heroSection = document.getElementById('home');
     const heroCanvas = document.getElementById('hero-3d-model');
-    if (!heroCanvas) return;
+    if (!heroCanvas || !heroSection) return;
 
-    const observer = new IntersectionObserver((entries) => {
+    if (heroObserver) {
+      heroObserver.disconnect();
+    }
+
+    heroObserver = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && !heroModelLoaded) {
         const featuredProduct = products.find(p => p.featured) || products[0];
         if (featuredProduct?.modelUrl) {
@@ -197,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }, { threshold: 0.1 });
-    observer.observe(heroSection);
+    heroObserver.observe(heroSection);
   }
 
   // Render products
@@ -227,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${p.isNew ? '<span class="new-badge">New</span>' : ''}
         <span class="category-badge">${p.category}</span>
         <button class="wishlist-btn" data-id="${p.id}" aria-label="Add ${p.name} to wishlist"><i class="fas fa-heart"></i></button>
-        <img src="${p.thumbnail || p.image}" alt="${p.name}" loading="lazy" />
+        <img src="${p.thumbnail || p.image}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${p.image}', 'error');" />
         <div class="content">
           <h3>${p.name}</h3>
           <p>${p.description}</p>
@@ -290,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     priceElement.textContent = product.price ? `$${product.price.toFixed(2)}` : 'Price unavailable';
 
     carousel.innerHTML = (product.images || [product.image]).map((img, i) => `
-      <img src="${img}" alt="${product.name} view ${i + 1}" loading="lazy" />
+      <img src="${img}" alt="${product.name} view ${i + 1}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
     `).join('');
 
     customizationDiv.innerHTML = product.customization ? `
@@ -307,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const related = products.find(p => p.id == relatedId);
       return related ? `
         <div class="related-product">
-          <img src="${related.image}" alt="${related.name}" loading="lazy" />
+          <img src="${related.image}" alt="${related.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.image}', 'error');" />
           <span>${related.name}</span>
         </div>
       ` : '';
@@ -420,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const div = document.createElement('div');
       div.className = 'cart-item';
       div.innerHTML = `
-        <img src="${product.image}" alt="${product.name}" width="50" loading="lazy" />
+        <img src="${product.image}" alt="${product.name}" width="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${product.image}', 'error');" />
         <h3>${product.name}</h3>
         <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" aria-label="Quantity for ${product.name}"></p>
         <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
@@ -470,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!product) return '';
       return `
         <div class="mini-cart-item">
-          <img src="${product.image}" alt="${product.name}" width="30" loading="lazy" />
+          <img src="${product.image}" alt="${product.name}" width="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${product.image}', 'error');" />
           <span>${product.name} x ${item.quantity}</span>
           <span>$${(product.price * item.quantity).toFixed(2)}</span>
         </div>
@@ -485,7 +493,13 @@ document.addEventListener('DOMContentLoaded', () => {
       sec.style.display = ('#' + sec.id) === hash ? 'block' : 'none';
     });
     if (hash === '#cart') renderCartPage();
-    disposeThreeJsResources();
+    if (hash === '#home') {
+      heroModelLoaded = false; // Allow hero model to reload
+      disposeThreeJsResources();
+      setupHero3DModel(); // Reinitialize observer
+    } else {
+      disposeThreeJsResources();
+    }
   }
 
   // Intersection Observer for sections
@@ -512,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     grid.innerHTML = data.map(testimonial => `
       <div class="testimonial">
-        <img src="${testimonial.image}" alt="${testimonial.name}" loading="lazy" />
+        <img src="${testimonial.image}" alt="${testimonial.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
         <p>"${testimonial.quote}"</p>
         <h4>${testimonial.name}</h4>
       </div>
@@ -613,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cleanup on unload
   window.addEventListener('unload', () => {
     disposeThreeJsResources();
+    if (heroObserver) heroObserver.disconnect();
     document.querySelectorAll('.quick-view-btn, .add-to-cart-btn, .wishlist-btn, .remove-btn, input[type="number"]').forEach(el => {
       el.replaceWith(el.cloneNode(true));
     });

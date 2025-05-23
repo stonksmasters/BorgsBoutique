@@ -19,7 +19,7 @@
     "name": "Pet Relief Sculpture",
     "description": "Relief sculpture of your pet in detailed PLA",
     "price": 28.00,
-    "image": "/images/placeholder.png",
+    "image": "/images/ChloeCoin.png",
     "category": "Pet",
     "modelUrl": "/models/PetRelief.glb",
     "customization": {
