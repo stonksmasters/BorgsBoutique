@@ -4,38 +4,44 @@ document.addEventListener('DOMContentLoaded', () => {
   let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
   let currentPage = 0;
   const productsPerPage = 6;
-  let currentRenderer = null;
-  let currentScene = null;
-  let currentCamera = null;
+  const renderers = new Map(); // Track renderer, scene, camera per canvas
   let heroModelLoaded = false;
   let heroObserver = null;
 
-  // Dispose Three.js resources
-  function disposeThreeJsResources() {
-    if (currentRenderer) {
-      currentRenderer.forceContextLoss();
-      currentRenderer.dispose();
-      currentRenderer = null;
+  // Dispose Three.js resources for a specific canvas
+  function disposeThreeJsResources(canvasId) {
+    const resources = renderers.get(canvasId);
+    if (!resources) return;
+
+    const { renderer, scene, animateId } = resources;
+    if (animateId) cancelAnimationFrame(animateId);
+
+    if (renderer) {
+      renderer.dispose();
+      renderer.domElement.innerHTML = '';
     }
-    if (currentScene) {
-      currentScene.traverse(object => {
-        if (object.geometry) object.geometry.dispose();
+
+    if (scene) {
+      scene.traverse(object => {
+        if (object.geometry) {
+          object.geometry.dispose();
+        }
         if (object.material) {
-          if (Array.isArray(object.material)) {
-            object.material.forEach(mat => {
-              if (mat.map) mat.map.dispose();
-              mat.dispose();
-            });
-          } else {
-            if (mat.map) mat.map.dispose();
-            mat.dispose();
-          }
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach(material => {
+            if (material && typeof material.dispose === 'function') {
+              if (material.map) material.map.dispose();
+              if (material.normalMap) material.normalMap.dispose();
+              if (material.roughnessMap) material.roughnessMap.dispose();
+              material.dispose();
+            }
+          });
         }
       });
-      currentScene.clear();
-      currentScene = null;
+      scene.clear();
     }
-    currentCamera = null;
+
+    renderers.delete(canvasId);
   }
 
   // Toast notification
@@ -60,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fetch products with cache-busting
   async function fetchProducts() {
-    localStorage.removeItem('products'); // Clear stale cache
+    localStorage.removeItem('products');
     try {
       const cacheBuster = `?v=${Date.now()}`;
       const response = await fetch(`/product.json${cacheBuster}`);
@@ -74,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Fetch testimonials
+  // Fetch testimonials with fallback
   async function fetchTestimonials() {
     const cached = localStorage.getItem('testimonials');
     if (cached) return JSON.parse(cached);
@@ -85,19 +91,28 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('testimonials', JSON.stringify(data));
       return data;
     } catch (error) {
-      showToast('Unable to load testimonials.', 'info');
-      return [];
+      showToast('Testimonials unavailable. Showing default.', 'info');
+      const defaultTestimonial = [
+        {
+          image: '/images/placeholder.png',
+          quote: 'Beautiful craftsmanship! Our custom lamp is a cherished keepsake.',
+          name: 'Jane Doe'
+        }
+      ];
+      localStorage.setItem('testimonials', JSON.stringify(defaultTestimonial));
+      return defaultTestimonial;
     }
   }
 
-  // Render 3D model
-  function render3DModel(modelUrl, canvas) {
+  // Render 3D model with improved centering and professional lighting
+  async function render3DModel(modelUrl, canvas) {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       canvas.innerHTML = '<p>3D rendering failed.</p>';
       showToast('3D rendering failed.', 'error');
       return;
     }
 
+    const canvasId = canvas.id;
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) {
       canvas.innerHTML = '<p>WebGL not supported on this device.</p>';
@@ -105,30 +120,38 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    disposeThreeJsResources();
+    // Clean up existing resources
+    disposeThreeJsResources(canvasId);
+
+    // Add loading wheel
+    canvas.innerHTML = '<div class="model-loading-spinner"></div>';
+    canvas.classList.add('loading');
 
     const width = Math.min(canvas.parentElement.clientWidth || 400, 400);
     const height = Math.min(canvas.parentElement.clientHeight || 300, 300);
+    const aspect = width / height;
     canvas.width = width;
     canvas.height = height;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000); // Reduced FOV for tighter framing
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setClearColor(0xEEE8E2, 1); // Match --beige-light
 
-    currentScene = scene;
-    currentCamera = camera;
-    currentRenderer = renderer;
+    // Professional lighting setup
+    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6); // Warm, soft key light
+    keyLight.position.set(2, 2, 2).normalize();
+    scene.add(keyLight);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    directionalLight.position.set(1, 1, 1).normalize();
-    scene.add(directionalLight);
+    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4); // Warm sky, gold ground
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2); // Subtle rim light
+    rimLight.position.set(-1, 1, -2).normalize();
+    scene.add(rimLight);
 
     const controls = new THREE.OrbitControls(camera, canvas);
     controls.enableDamping = true;
@@ -137,40 +160,61 @@ document.addEventListener('DOMContentLoaded', () => {
     controls.minDistance = 1;
     controls.maxDistance = 10;
 
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        const model = gltf.scene;
-        scene.add(model);
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const scale = 2 / maxDim;
-        model.scale.set(scale, scale, scale);
-        model.position.sub(center.multiplyScalar(scale));
-        camera.position.set(0, 0, 3);
+    let animateId = null;
+    renderers.set(canvasId, { renderer, scene, camera, controls, animateId });
+
+    try {
+      const loader = new THREE.GLTFLoader();
+      const gltf = await new Promise((resolve, reject) => {
+        loader.load(modelUrl, resolve, undefined, reject);
+      });
+
+      canvas.innerHTML = ''; // Remove loading wheel
+      canvas.classList.remove('loading');
+
+      const model = gltf.scene;
+      scene.add(model);
+
+      // Center and scale model
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scale = 2 / maxDim;
+      model.scale.set(scale, scale, scale);
+
+      // Adjust position after scaling
+      model.position.set(0, 0, 0); // Reset to origin
+      const scaledBox = new THREE.Box3().setFromObject(model);
+      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+      model.position.sub(scaledCenter); // Center model
+
+      // Dynamic camera distance
+      const fovRad = (camera.fov * Math.PI) / 180;
+      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5; // Fit model with padding
+      camera.position.set(0, 0, Math.max(cameraDistance, 2));
+      camera.lookAt(0, 0, 0);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      const animate = () => {
+        animateId = requestAnimationFrame(animate);
+        renderers.set(canvasId, { renderer, scene, camera, controls, animateId });
         controls.update();
-        const animate = () => {
-          if (!currentRenderer) return;
-          requestAnimationFrame(animate);
-          controls.update();
-          renderer.render(scene, camera);
-        };
-        animate();
-      },
-      undefined,
-      (error) => {
-        canvas.innerHTML = '<p>Failed to load 3D model.</p>';
-        showToast(`Unable to load 3D model: ${modelUrl}. Please try again.`, 'error');
-      }
-    );
+        renderer.render(scene, camera);
+      };
+      animate();
+    } catch (error) {
+      canvas.innerHTML = '<p>Failed to load 3D model.</p>';
+      canvas.classList.remove('loading');
+      showToast(`Unable to load 3D model: ${modelUrl}. Please try again.`, 'error');
+    }
 
     const resizeHandler = () => {
       const newWidth = Math.min(canvas.parentElement.clientWidth || 400, 400);
       const newHeight = Math.min(canvas.parentElement.clientHeight || 300, 300);
-      camera.aspect = newWidth / newHeight;
+      const newAspect = newWidth / newHeight;
+      camera.aspect = newAspect;
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
       canvas.style.width = `${newWidth}px`;
@@ -180,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return () => {
       window.removeEventListener('resize', resizeHandler);
-      disposeThreeJsResources();
+      disposeThreeJsResources(canvasId);
     };
   }
 
@@ -345,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('quick-view-modal');
     if (modal) {
       modal.style.display = 'none';
-      disposeThreeJsResources();
+      disposeThreeJsResources('product-3d-model');
     }
   }
 
@@ -492,13 +536,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('section').forEach(sec => {
       sec.style.display = ('#' + sec.id) === hash ? 'block' : 'none';
     });
-    if (hash === '#cart') renderCartPage();
-    if (hash === '#home') {
-      heroModelLoaded = false; // Allow hero model to reload
-      disposeThreeJsResources();
-      setupHero3DModel(); // Reinitialize observer
+    if (hash === '#cart') {
+      renderCartPage();
+      disposeThreeJsResources('hero-3d-model');
+      disposeThreeJsResources('product-3d-model');
+    } else if (hash === '#home') {
+      heroModelLoaded = false;
+      disposeThreeJsResources('product-3d-model');
+      setupHero3DModel();
     } else {
-      disposeThreeJsResources();
+      disposeThreeJsResources('hero-3d-model');
+      disposeThreeJsResources('product-3d-model');
     }
   }
 
@@ -626,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cleanup on unload
   window.addEventListener('unload', () => {
-    disposeThreeJsResources();
+    renderers.forEach((_, canvasId) => disposeThreeJsResources(canvasId));
     if (heroObserver) heroObserver.disconnect();
     document.querySelectorAll('.quick-view-btn, .add-to-cart-btn, .wishlist-btn, .remove-btn, input[type="number"]').forEach(el => {
       el.replaceWith(el.cloneNode(true));
