@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animateId) cancelAnimationFrame(animateId);
 
     if (renderer) {
+      renderer.clear(); // Clear render output immediately
       renderer.dispose();
       renderer.domElement.innerHTML = '';
     }
@@ -104,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render 3D model with improved centering and professional lighting
+  // Render 3D model with immediate loading wheel
   async function render3DModel(modelUrl, canvas) {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       canvas.innerHTML = '<p>3D rendering failed.</p>';
@@ -120,12 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Clean up existing resources
-    disposeThreeJsResources(canvasId);
-
-    // Add loading wheel
+    // Immediately clear canvas and show loading wheel
     canvas.innerHTML = '<div class="model-loading-spinner"></div>';
     canvas.classList.add('loading');
+
+    // Clean up existing resources after visual reset
+    disposeThreeJsResources(canvasId);
 
     const width = Math.min(canvas.parentElement.clientWidth || 400, 400);
     const height = Math.min(canvas.parentElement.clientHeight || 300, 300);
@@ -136,20 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.style.height = `${height}px`;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000); // Reduced FOV for tighter framing
+    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setClearColor(0xEEE8E2, 1); // Match --beige-light
 
     // Professional lighting setup
-    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6); // Warm, soft key light
+    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6);
     keyLight.position.set(2, 2, 2).normalize();
     scene.add(keyLight);
 
-    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4); // Warm sky, gold ground
+    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2); // Subtle rim light
+    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2);
     rimLight.position.set(-1, 1, -2).normalize();
     scene.add(rimLight);
 
@@ -169,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.load(modelUrl, resolve, undefined, reject);
       });
 
-      canvas.innerHTML = ''; // Remove loading wheel
+      canvas.innerHTML = '';
       canvas.classList.remove('loading');
 
       const model = gltf.scene;
@@ -184,14 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
       model.scale.set(scale, scale, scale);
 
       // Adjust position after scaling
-      model.position.set(0, 0, 0); // Reset to origin
+      model.position.set(0, 0, 0);
       const scaledBox = new THREE.Box3().setFromObject(model);
       const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      model.position.sub(scaledCenter); // Center model
+      model.position.sub(scaledCenter);
 
       // Dynamic camera distance
       const fovRad = (camera.fov * Math.PI) / 180;
-      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5; // Fit model with padding
+      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5;
       camera.position.set(0, 0, Math.max(cameraDistance, 2));
       camera.lookAt(0, 0, 0);
       controls.target.set(0, 0, 0);
@@ -625,9 +626,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300));
   });
 
-  document.getElementById('load-more-btn').addEventListener('click', () => {
-    currentPage++;
-    renderProducts(document.querySelector('.occasion-btn.active').dataset.category);
+  document.getElementById('load-more-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPage++;
+      renderProducts(document.querySelector('.occasion-btn.active').dataset.category);
+    });
   });
 
   const cartLink = document.querySelector('.cart-link');
@@ -640,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.querySelectorAll('.faq-question').forEach(question => {
-    question.addEventListener('click', () => {
+    btn.addEventListener('click', () => {
       const answer = question.nextElementSibling;
       const isOpen = answer.style.display === 'block';
       answer.style.display = isOpen ? 'none' : 'block';
