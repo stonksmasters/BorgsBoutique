@@ -6,7 +6,7 @@
     "price": 35.00,
     "image": "images/placeholder.png",
     "category": "Baby",
-    "modelUrl": "models/PetRelief.glb",
+    "modelUrl": "models/LithophaneLamp.glb",
     "customization": {
       "type": "image",
       "label": "Upload your photo for the lamp"
