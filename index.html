@@ -8,7 +8,7 @@
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="BorgsBoutique — Exquisite 3D Keepsakes" />
   <meta property="og:description" content="Craft bespoke 3D-printed heirlooms for weddings, graduations, and cherished moments." />
-  <meta property="og:image" content="https://borgsboutique.netlify.app//images/BBLogo.png" />
+  <meta property="og:image" content="https://borgsboutique.netlify.app/images/BBLogo.webp" />
   <meta property="og:image:alt" content="BorgsBoutique Logo" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -19,34 +19,51 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="BorgsBoutique — Exquisite 3D Keepsakes" />
   <meta name="twitter:description" content="Craft bespoke 3D-printed heirlooms for weddings, graduations, and cherished moments." />
-  <meta name="twitter:image" content="https://borgsboutique.netlify.app//images/BBLogo.png" />
+  <meta name="twitter:image" content="https://borgsboutique.netlify.app/images/BBLogo.webp" />
   <meta name="twitter:image:alt" content="BorgsBoutique Logo" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* Inline critical CSS for above-the-fold content */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(208, 191, 179, 0.95);
+      transition: box-shadow 0.3s ease;
+    }
+    header.scrolled {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .hero {
+      background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('/images/hero-bg.webp') center/cover fixed;
+    }
+  </style>
 </head>
 <body>
   <!-- Header with Mini-Cart Dropdown -->
-  <header>
+  <header role="banner">
     <div class="container nav">
-      <a href="#home" class="logo">
+      <a href="#home" class="logo" aria-label="BorgsBoutique Home">
         <img src="/images/BBLogo.png" alt="BorgsBoutique Logo" loading="lazy" />
       </a>
-      <nav>
+      <nav aria-label="Main navigation">
         <ul class="nav-links">
           <li><a href="#home">Home</a></li>
           <li><a href="#shop">Shop</a></li>
           <li class="cart-link">
-            <a href="#cart"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
-            <div class="mini-cart-dropdown">
+            <a href="#cart" aria-label="View cart"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
+            <div class="mini-cart-dropdown" role="region" aria-label="Mini cart">
               <div class="mini-cart-content">
                 <p>Your cart is empty.</p>
               </div>
+              <a href="#cart" class="btn view-cart-btn">View Cart</a>
             </div>
           </li>
         </ul>
         <!-- Hamburger menu for mobile -->
-        <div class="nav-toggle" aria-label="Toggle navigation">
+        <div class="nav-toggle" aria-label="Toggle navigation" tabindex="0">
           <span></span>
           <span></span>
           <span></span>
@@ -56,25 +73,24 @@
   </header>
 
   <!-- Hero Section with 3D Model -->
-  <section id="home" class="hero">
+  <section id="home" class="hero" role="banner">
     <div class="container hero-content">
       <div class="hero-text">
         <h2>Elevate Life’s Milestones</h2>
         <p>Craft bespoke 3D‑printed heirlooms for celebrations—birthdays, weddings, and every cherished moment.</p>
-        <a href="#shop" class="btn">Discover Our Collection</a>
+        <a href="#shop" class="btn" role="button" aria-label="Discover our collection">Discover Our Collection</a>
       </div>
       <div class="hero-images">
         <div class="canvas-container">
-          <canvas id="hero-3d-model" width="400" height="300" aria-label="3D model of featured product">
-            <p>3D model requires JavaScript and WebGL support.</p>
-          </canvas>
+          <canvas id="hero-3d-model" aria-label="3D model of featured product"></canvas>
+          <img src="/images/fallback-hero.webp" alt="Featured 3D-printed keepsake" class="fallback-image" loading="lazy" />
         </div>
       </div>
     </div>
   </section>
 
   <!-- Shop Section with Breadcrumbs and Quick View Modal -->
-  <section id="shop" class="shop">
+  <section id="shop" class="shop" aria-live="polite">
     <div class="container">
       <nav class="breadcrumbs" aria-label="Breadcrumb navigation">
         <a href="#home">Home</a> > <span>Shop</span>
@@ -82,75 +98,51 @@
       <h2>Chic Creations</h2>
       <div class="shop-intro">
         <p>Immerse in our neutral-toned collections—perfectly refined for weddings, graduations, and elegant events.</p>
+        <div class="trust-badges">
+          <span class="trust-badge">Free Shipping Over $50</span>
+          <span class="trust-badge">Secure Checkout</span>
+        </div>
       </div>
       <div class="occasion-tags">
-        <button class="occasion-btn active" data-category="all">All</button>
-        <button class="occasion-btn" data-category="Baby">Baby</button>
-        <button class="occasion-btn" data-category="Pet">Pet</button>
-        <button class="occasion-btn" data-category="Wedding">Wedding</button>
-        <button class="occasion-btn" data-category="Graduation">Graduation</button>
-        <button class="occasion-btn" data-category="Anniversary">Anniversary</button>
+        <button class="occasion-btn active" data-category="all" aria-label="Show all products">All</button>
+        <button class="occasion-btn" data-category="Baby" aria-label="Show Baby products">Baby</button>
+        <button class="occasion-btn" data-category="Pet" aria-label="Show Pet products">Pet</button>
+        <button class="occasion-btn" data-category="Wedding" aria-label="Show Wedding products">Wedding</button>
+        <button class="occasion-btn" data-category="Graduation" aria-label="Show Graduation products">Graduation</button>
+        <button class="occasion-btn" data-category="Anniversary" aria-label="Show Anniversary products">Anniversary</button>
       </div>
-      <div class="product-grid neutral-theme">
-        <!-- Example product card for reference; populated via JS -->
-        <div class="product-card">
-          <span class="new-badge">New</span>
-          <span class="category-badge">Wedding</span>
-          <button class="wishlist-btn" aria-label="Add to wishlist"><i class="fas fa-heart"></i></button>
-          <img src="/images/RCS.jpg" alt="Product image" loading="lazy" />
-          <div class="content">
-            <h3>Sample Keepsake</h3>
-            <p>Exquisite 3D-printed wedding ornament.</p>
-            <span class="price">$49.99</span>
-            <div class="button-container">
-              <button class="quick-view-btn">Quick View</button>
-              <button class="add-to-cart-btn">Add to Cart</button>
+      <div class="product-grid neutral-theme"></div>
+      <div class="load-more" aria-hidden="true">
+        <button id="load-more-btn" class="btn" aria-label="Load more products">Load More</button>
+      </div>
+      <div class="recently-viewed" aria-label="Recently viewed products">
+        <h2>Recently Viewed</h2>
+        <div id="recently-viewed-grid"></div>
+      </div>
+      <!-- Quick View Modal -->
+      <div id="quick-view-modal" class="modal" role="dialog" aria-labelledby="modal-product-name" aria-hidden="true" tabindex="-1">
+        <div class="modal-content">
+          <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
+          <div class="product-details">
+            <div class="canvas-container">
+              <canvas id="product-3d-model" aria-label="3D model of product"></canvas>
+              <img src="/images/fallback-product.webp" alt="Product fallback image" class="fallback-image" loading="lazy" />
+            </div>
+            <div class="carousel" aria-label="Product image carousel">
+              <!-- Populated via JS -->
+            </div>
+            <div class="product-info">
+              <h3 id="modal-product-name"></h3>
+              <p id="modal-product-description"></p>
+              <span id="modal-product-price"></span>
+              <div id="customization-options" role="region" aria-label="Product customization options"></div>
+              <button id="add-to-cart-btn" class="btn" aria-label="Add product to cart">Add to Cart</button>
+              <button id="save-for-later-btn" class="btn" aria-label="Save product for later">Save for Later</button>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="load-more">
-        <button id="load-more-btn" class="btn">Load More</button>
-      </div>
-    </div>
-    <!-- Quick View Modal -->
-    <div id="quick-view-modal" class="modal" role="dialog" aria-labelledby="modal-product-name" aria-hidden="true" tabindex="-1">
-      <div class="modal-content">
-        <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
-        <div class="product-details">
-          <div class="canvas-container">
-            <canvas id="product-3d-model" width="400" height="300" aria-label="3D model of product">
-              <p>3D model requires JavaScript and WebGL support.</p>
-            </canvas>
-          </div>
-          <div class="carousel">
-            <!-- Example images; populated via JS -->
-            <img src="placeholder1.jpg" alt="Product view 1" loading="lazy" />
-            <img src="placeholder2.jpg" alt="Product view 2" loading="lazy" />
-          </div>
-          <div class="product-info">
-            <h3 id="modal-product-name"></h3>
-            <p id="modal-product-description"></p>
-            <span id="modal-product-price"></span>
-            <div id="customization-options" role="region" aria-label="Product customization options">
-              <!-- Example customization; populated via JS -->
-              <label for="color-option">Color</label>
-              <select id="color-option">
-                <option value="gold">Gold</option>
-                <option value="silver">Silver</option>
-              </select>
-            </div>
-            <button id="add-to-cart-btn" class="btn">Add to Cart</button>
-          </div>
-        </div>
-        <div class="related-products">
-          <h4>Related Products</h4>
-          <div id="related-products-grid">
-            <!-- Example related product; populated via JS -->
-            <div class="related-product">
-              <img src="related-placeholder.jpg" alt="Related product" loading="lazy" />
-              <span>Related Keepsake</span>
-            </div>
+          <div class="related-products">
+            <h4>Related Products</h4>
+            <div id="related-products-grid"></div>
           </div>
         </div>
       </div>
@@ -158,41 +150,40 @@
   </section>
 
   <!-- Testimonials Section -->
-  <section class="testimonials">
+  <section class="testimonials" aria-label="Customer testimonials">
     <div class="container">
       <h2>What Our Customers Say</h2>
-      <div class="testimonial-grid">
-        <p>Testimonials loading...</p>
-      </div>
+      <div class="testimonial-grid"></div>
     </div>
   </section>
 
-  <!-- Cart Section with Thumbnails and Quantity Inputs -->
-  <section id="cart" class="cart">
+  <!-- Cart Section -->
+  <section id="cart" class="cart" aria-label="Shopping cart">
     <div class="container">
       <h2>Your Cart</h2>
-      <div class="cart-items">
-        <!-- Populated via JS -->
-      </div>
+      <div class="cart-items"></div>
       <div class="cart-total">
         <h3>Total: $0.00</h3>
-        <button class="checkout-btn">Proceed to Checkout</button>
+        <button class="checkout-btn" aria-label="Proceed to checkout">Proceed to Checkout</button>
+        <div class="trust-badges">
+          <span class="trust-badge">Secure Checkout</span>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- FAQ Section -->
-  <section class="faq">
+  <section class="faq" aria-label="Frequently asked questions">
     <div class="container">
       <h2>Need Assistance?</h2>
       <div class="faq-item">
-        <button class="faq-question">What is your production timeframe? <i class="fas fa-chevron-down"></i></button>
+        <button class="faq-question" aria-expanded="false">What is your production timeframe? <i class="fas fa-chevron-down"></i></button>
         <div class="faq-answer">
           <p>Design approval within 2 business days. Production and delivery complete in 5–7 business days.</p>
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question">Are materials pet-safe? <i class="fas fa-chevron-down"></i></button>
+        <button class="faq-question" aria-expanded="false">Are materials pet-safe? <i class="fas fa-chevron-down"></i></button>
         <div class="faq-answer">
           <p>All our filaments are non-toxic and safe for households with pets and children.</p>
         </div>
@@ -201,21 +192,22 @@
   </section>
 
   <!-- Newsletter Section -->
-  <section class="newsletter">
+  <section class="newsletter" aria-label="Newsletter signup">
     <div class="container newsletter-content">
       <div class="newsletter-text">
         <h2>Stay in the Inner Circle</h2>
         <p>Subscribe for exclusive previews and receive 10% off your inaugural creation.</p>
+        <p class="offer-timer" aria-live="polite">Limited Offer: 3 days left!</p>
       </div>
-      <form class="newsletter-form">
+      <form class="newsletter-form" aria-label="Newsletter subscription form">
         <input type="email" placeholder="Enter your email" required aria-label="Email address" />
-        <button type="submit" class="btn">Subscribe</button>
+        <button type="submit" class="btn" aria-label="Subscribe to newsletter">Subscribe</button>
       </form>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer>
+  <footer role="contentinfo">
     <div class="container footer-content">
       <div class="footer-section">
         <h3>BorgsBoutique</h3>
@@ -227,9 +219,9 @@
         </div>
         <div class="footer-newsletter">
           <h3>Newsletter</h3>
-          <form>
+          <form aria-label="Footer newsletter subscription form">
             <input type="email" placeholder="Enter your email" required aria-label="Newsletter email" />
-            <button type="submit" class="btn">Subscribe</button>
+            <button type="submit" class="btn" aria-label="Subscribe to newsletter">Subscribe</button>
           </form>
         </div>
       </div>
@@ -259,9 +251,10 @@
   </div>
 
   <!-- Scripts -->
-  <script defer type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script defer type="text/javascript" src="/js/script.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/draco_loader.js"></script>
+  <script defer src="/js/script.js"></script>
 </body>
 </html>

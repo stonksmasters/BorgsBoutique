@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
   let currentPage = 0;
   const productsPerPage = 6;
-  const renderers = new Map(); // Track renderer, scene, camera per canvas
+  const renderers = new Map();
   let heroModelLoaded = false;
   let heroObserver = null;
 
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animateId) cancelAnimationFrame(animateId);
 
     if (renderer) {
-      renderer.clear(); // Clear render output immediately
+      renderer.clear();
       renderer.dispose();
       renderer.domElement.innerHTML = '';
     }
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render 3D model with immediate loading wheel
+  // Render 3D model with fallback image handling
   async function render3DModel(modelUrl, canvas) {
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       canvas.innerHTML = '<p>3D rendering failed.</p>';
@@ -114,18 +114,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const canvasId = canvas.id;
+    const container = canvas.closest('.canvas-container');
+    const fallbackImage = container.querySelector('.fallback-image');
+
+    // Reset container state
+    container.classList.remove('no-webgl', 'model-failed', 'loading');
+    canvas.style.display = 'block';
+    if (fallbackImage) fallbackImage.style.display = 'none';
+    canvas.innerHTML = '<div class="model-loading-spinner"></div>';
+    container.classList.add('loading');
+
+    // Check WebGL support
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) {
-      canvas.innerHTML = '<p>WebGL not supported on this device.</p>';
+      container.classList.add('no-webgl');
+      container.classList.remove('loading');
+      canvas.style.display = 'none';
+      if (fallbackImage) fallbackImage.style.display = 'block';
       showToast('WebGL not supported.', 'error');
       return;
     }
 
-    // Immediately clear canvas and show loading wheel
-    canvas.innerHTML = '<div class="model-loading-spinner"></div>';
-    canvas.classList.add('loading');
-
-    // Clean up existing resources after visual reset
+    // Clean up existing resources
     disposeThreeJsResources(canvasId);
 
     const width = Math.min(canvas.parentElement.clientWidth || 400, 400);
@@ -137,20 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.style.height = `${height}px`;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000); // Reduced FOV for tighter framing
+    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(width, height);
-    renderer.setClearColor(0xEEE8E2, 1); // Match --beige-light
+    renderer.setClearColor(0xEEE8E2, 1);
 
-    // Professional lighting setup
-    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6); // Warm, soft key light
+    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6);
     keyLight.position.set(2, 2, 2).normalize();
     scene.add(keyLight);
 
-    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4); // Warm sky, gold ground
+    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2); // Subtle rim light
+    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2);
     rimLight.position.set(-1, 1, -2).normalize();
     scene.add(rimLight);
 
@@ -170,13 +179,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.load(modelUrl, resolve, undefined, reject);
       });
 
-      canvas.innerHTML = ''; // Remove loading wheel
-      canvas.classList.remove('loading');
+      // Model loaded successfully, hide loading and fallback
+      container.classList.remove('loading');
+      canvas.innerHTML = '';
+      if (fallbackImage) fallbackImage.style.display = 'none';
 
       const model = gltf.scene;
       scene.add(model);
 
-      // Center and scale model
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
@@ -184,15 +194,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const scale = 2 / maxDim;
       model.scale.set(scale, scale, scale);
 
-      // Adjust position after scaling
-      model.position.set(0, 0, 0); // Reset to origin
+      model.position.set(0, 0, 0);
       const scaledBox = new THREE.Box3().setFromObject(model);
       const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      model.position.sub(scaledCenter); // Center model
+      model.position.sub(scaledCenter);
 
-      // Dynamic camera distance
       const fovRad = (camera.fov * Math.PI) / 180;
-      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5; // Fit model with padding
+      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5;
       camera.position.set(0, 0, Math.max(cameraDistance, 2));
       camera.lookAt(0, 0, 0);
       controls.target.set(0, 0, 0);
@@ -206,9 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       animate();
     } catch (error) {
-      canvas.innerHTML = '<p>Failed to load 3D model.</p>';
-      canvas.classList.remove('loading');
-      showToast(`Unable to load 3D model: ${modelUrl}. Please try again.`, 'error');
+      container.classList.remove('loading');
+      container.classList.add('model-failed');
+      canvas.style.display = 'none';
+      if (fallbackImage) fallbackImage.style.display = 'block';
+      showToast(`Unable to load 3D model: ${modelUrl}.`, 'error');
     }
 
     const resizeHandler = () => {
@@ -246,7 +256,12 @@ document.addEventListener('DOMContentLoaded', () => {
           heroModelLoaded = true;
           render3DModel(featuredProduct.modelUrl, heroCanvas);
         } else {
-          heroCanvas.innerHTML = '<p>3D model not available.</p>';
+          const container = heroCanvas.closest('.canvas-container');
+          container.classList.add('model-failed');
+          heroCanvas.style.display = 'none';
+          const fallbackImage = container.querySelector('.fallback-image');
+          if (fallbackImage) fallbackImage.style.display = 'block';
+          showToast('3D model not available.', 'info');
         }
       }
     }, { threshold: 0.1 });
@@ -373,7 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (product.modelUrl) {
       render3DModel(product.modelUrl, modelElement);
     } else {
-      modelElement.innerHTML = '<p>3D model not available.</p>';
+      const container = modelElement.closest('.canvas-container');
+      container.classList.add('model-failed');
+      modelElement.style.display = 'none';
+      const fallbackImage = container.querySelector('.fallback-image');
+      if (fallbackImage) fallbackImage.style.display = 'block';
+      showToast('3D model not available.', 'info');
     }
 
     const newBtn = addToCartBtn.cloneNode(true);
