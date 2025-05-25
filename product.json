@@ -4,9 +4,13 @@
     "name": "Custom Lithophane Lamp",
     "description": "3D printed photo lamp with custom image",
     "price": 35.00,
-    "image": "/images/LithophaneLamp.png",
+    "images": [
+      "/images/LithophaneSide1.png",
+      "/images/LithophaneSide2.png",
+      "/images/LithophaneSide3.png",
+      "/images/LithophaneBack.png"
+    ],
     "category": "Baby",
-    "modelUrl": "/models/LithophaneLamp.glb",
     "customization": {
       "type": "image",
       "label": "Upload your photo for the lamp"
@@ -19,9 +23,12 @@
     "name": "Pet Relief Sculpture",
     "description": "Relief sculpture of your pet in detailed PLA",
     "price": 28.00,
-    "image": "/images/ChloeCoin.png",
+    "images": [
+      "/images/ChloeCoin.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Pet",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "image",
       "label": "Upload your pet's photo"
@@ -33,9 +40,12 @@
     "name": "Laser Engraved Wedding Sign",
     "description": "Elegant laser engraved wood sign for weddings",
     "price": 45.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Wedding",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the text for the sign"
@@ -47,9 +57,12 @@
     "name": "3D Baby Name Keepsake",
     "description": "Personalized 3D-printed name plaque for nursery decor",
     "price": 22.00,
-    "image": "/images/RCS.jpg",
+    "images": [
+      "/images/RCS.jpg",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Baby",
-    "modelUrl": "/models/RCS.glb",
     "customization": {
       "type": "text",
       "label": "Enter the baby's name"
@@ -61,9 +74,12 @@
     "name": "Baby Footprint Ornament",
     "description": "Laser-cut acrylic ornament capturing newborn footprints",
     "price": 18.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Baby",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "image",
       "label": "Upload the footprint image"
@@ -75,9 +91,12 @@
     "name": "3D Printed Baby Mobile",
     "description": "Whimsical hanging mobile with stars and clouds",
     "price": 30.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Baby",
-    "modelUrl": "/models/PetRelief.glb",
     "relatedProducts": [1, 4]
   },
   {
@@ -85,9 +104,12 @@
     "name": "Personalized Baby Milestone Discs",
     "description": "Set of 12 engraved discs to mark monthly milestones",
     "price": 25.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Baby",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the names and dates for the discs"
@@ -99,9 +121,12 @@
     "name": "Paw Print Keychain",
     "description": "Mini 3D-printed keychain with your pet’s paw print",
     "price": 12.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Pet",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "image",
       "label": "Upload your pet's paw print"
@@ -113,9 +138,12 @@
     "name": "Custom Pet Portrait Relief",
     "description": "Laser-engraved wood relief of your pet’s face",
     "price": 32.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Pet",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "image",
       "label": "Upload your pet's photo"
@@ -127,9 +155,12 @@
     "name": "3D Pet ID Tag",
     "description": "Durable engraved pet ID tag with custom text",
     "price": 15.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Pet",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the pet's name and contact info"
@@ -141,9 +172,12 @@
     "name": "Laser-Engraved Pet Memorial Plaque",
     "description": "Wooden plaque memorializing a beloved pet",
     "price": 27.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Pet",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the memorial text"
@@ -155,9 +189,12 @@
     "name": "Couple Silhouette Sculpture",
     "description": "3D-printed tabletop silhouette of bride & groom",
     "price": 40.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Wedding",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the couple's names and wedding date"
@@ -169,9 +206,12 @@
     "name": "Personalized Cake Topper",
     "description": "Laser-cut acrylic cake topper with custom names",
     "price": 20.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Wedding",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the names for the topper"
@@ -183,9 +223,12 @@
     "name": "Wedding Invitation Keepsake",
     "description": "3D-printed framed replica of your wedding invite",
     "price": 50.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Wedding",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "image",
       "label": "Upload your wedding invitation design"
@@ -197,9 +240,12 @@
     "name": "Engraved Table Numbers",
     "description": "Set of 10 wooden table number signs",
     "price": 35.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Wedding",
-    "modelUrl": "/models/PetRelief.glb",
     "relatedProducts": [3, 12]
   },
   {
@@ -207,9 +253,12 @@
     "name": "Graduation Cap Keepsake",
     "description": "3D-printed miniature graduation cap with custom year",
     "price": 25.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Graduation",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the graduation year"
@@ -221,9 +270,12 @@
     "name": "Engraved Diploma Frame",
     "description": "Laser-engraved wooden frame for your diploma",
     "price": 40.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Graduation",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the graduate's name and degree"
@@ -235,9 +287,12 @@
     "name": "Anniversary Heart Sculpture",
     "description": "3D-printed heart sculpture with custom date",
     "price": 30.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Anniversary",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the anniversary date"
@@ -249,9 +304,12 @@
     "name": "Personalized Anniversary Plaque",
     "description": "Laser-engraved plaque celebrating your milestone",
     "price": 35.00,
-    "image": "/images/placeholder.png",
+    "images": [
+      "/images/placeholder.png",
+      "/images/placeholder.png",
+      "/images/placeholder.png"
+    ],
     "category": "Anniversary",
-    "modelUrl": "/models/PetRelief.glb",
     "customization": {
       "type": "text",
       "label": "Enter the couple's names and anniversary year"

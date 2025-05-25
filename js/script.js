@@ -4,46 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
   let currentPage = 0;
   const productsPerPage = 6;
-  const renderers = new Map();
-  let heroModelLoaded = false;
-  let heroObserver = null;
-
-  // Dispose Three.js resources for a specific canvas
-  function disposeThreeJsResources(canvasId) {
-    const resources = renderers.get(canvasId);
-    if (!resources) return;
-
-    const { renderer, scene, animateId } = resources;
-    if (animateId) cancelAnimationFrame(animateId);
-
-    if (renderer) {
-      renderer.clear();
-      renderer.dispose();
-      renderer.domElement.innerHTML = '';
-    }
-
-    if (scene) {
-      scene.traverse(object => {
-        if (object.geometry) {
-          object.geometry.dispose();
-        }
-        if (object.material) {
-          const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach(material => {
-            if (material && typeof material.dispose === 'function') {
-              if (material.map) material.map.dispose();
-              if (material.normalMap) material.normalMap.dispose();
-              if (material.roughnessMap) material.roughnessMap.dispose();
-              material.dispose();
-            }
-          });
-        }
-      });
-      scene.clear();
-    }
-
-    renderers.delete(canvasId);
-  }
 
   // Toast notification
   function showToast(message, type = 'success') {
@@ -105,173 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Render 3D model with fallback image handling
-  async function render3DModel(modelUrl, canvas) {
-    if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
-      canvas.innerHTML = '<p>3D rendering failed.</p>';
-      showToast('3D rendering failed.', 'error');
-      return;
-    }
-
-    const canvasId = canvas.id;
-    const container = canvas.closest('.canvas-container');
-    const fallbackImage = container.querySelector('.fallback-image');
-
-    // Reset container state
-    container.classList.remove('no-webgl', 'model-failed', 'loading');
-    canvas.style.display = 'block';
-    if (fallbackImage) fallbackImage.style.display = 'none';
-    canvas.innerHTML = '<div class="model-loading-spinner"></div>';
-    container.classList.add('loading');
-
-    // Check WebGL support
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-      container.classList.add('no-webgl');
-      container.classList.remove('loading');
-      canvas.style.display = 'none';
-      if (fallbackImage) fallbackImage.style.display = 'block';
-      showToast('WebGL not supported.', 'error');
-      return;
-    }
-
-    // Clean up existing resources
-    disposeThreeJsResources(canvasId);
-
-    const width = Math.min(canvas.parentElement.clientWidth || 400, 400);
-    const height = Math.min(canvas.parentElement.clientHeight || 300, 300);
-    const aspect = width / height;
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setClearColor(0xEEE8E2, 1);
-
-    const keyLight = new THREE.DirectionalLight(0xFFF5E1, 0.6);
-    keyLight.position.set(2, 2, 2).normalize();
-    scene.add(keyLight);
-
-    const fillLight = new THREE.HemisphereLight(0xFFF5E1, 0xD4A373, 0.4);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xFFF5E1, 0.2);
-    rimLight.position.set(-1, 1, -2).normalize();
-    scene.add(rimLight);
-
-    const controls = new THREE.OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 1;
-    controls.maxDistance = 10;
-
-    let animateId = null;
-    renderers.set(canvasId, { renderer, scene, camera, controls, animateId });
-
-    try {
-      const loader = new THREE.GLTFLoader();
-      const gltf = await new Promise((resolve, reject) => {
-        loader.load(modelUrl, resolve, undefined, reject);
-      });
-
-      // Model loaded successfully, hide loading and fallback
-      container.classList.remove('loading');
-      canvas.innerHTML = '';
-      if (fallbackImage) fallbackImage.style.display = 'none';
-
-      const model = gltf.scene;
-      scene.add(model);
-
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const scale = 2 / maxDim;
-      model.scale.set(scale, scale, scale);
-
-      model.position.set(0, 0, 0);
-      const scaledBox = new THREE.Box3().setFromObject(model);
-      const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-      model.position.sub(scaledCenter);
-
-      const fovRad = (camera.fov * Math.PI) / 180;
-      const cameraDistance = (maxDim * scale) / (2 * Math.tan(fovRad / 2)) * 1.5;
-      camera.position.set(0, 0, Math.max(cameraDistance, 2));
-      camera.lookAt(0, 0, 0);
-      controls.target.set(0, 0, 0);
-      controls.update();
-
-      const animate = () => {
-        animateId = requestAnimationFrame(animate);
-        renderers.set(canvasId, { renderer, scene, camera, controls, animateId });
-        controls.update();
-        renderer.render(scene, camera);
-      };
-      animate();
-    } catch (error) {
-      container.classList.remove('loading');
-      container.classList.add('model-failed');
-      canvas.style.display = 'none';
-      if (fallbackImage) fallbackImage.style.display = 'block';
-      showToast(`Unable to load 3D model: ${modelUrl}.`, 'error');
-    }
-
-    const resizeHandler = () => {
-      const newWidth = Math.min(canvas.parentElement.clientWidth || 400, 400);
-      const newHeight = Math.min(canvas.parentElement.clientHeight || 300, 300);
-      const newAspect = newWidth / newHeight;
-      camera.aspect = newAspect;
-      camera.updateProjectionMatrix();
-      renderer.setSize(newWidth, newHeight);
-      canvas.style.width = `${newWidth}px`;
-      canvas.style.height = `${newHeight}px`;
-    };
-    window.addEventListener('resize', resizeHandler);
-
-    return () => {
-      window.removeEventListener('resize', resizeHandler);
-      disposeThreeJsResources(canvasId);
-    };
-  }
-
-  // Setup hero 3D model
-  function setupHero3DModel() {
-    const heroSection = document.getElementById('home');
-    const heroCanvas = document.getElementById('hero-3d-model');
-    if (!heroCanvas || !heroSection) return;
-
-    if (heroObserver) {
-      heroObserver.disconnect();
-    }
-
-    heroObserver = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !heroModelLoaded) {
-        const featuredProduct = products.find(p => p.featured) || products[0];
-        if (featuredProduct?.modelUrl) {
-          heroModelLoaded = true;
-          render3DModel(featuredProduct.modelUrl, heroCanvas);
-        } else {
-          const container = heroCanvas.closest('.canvas-container');
-          container.classList.add('model-failed');
-          heroCanvas.style.display = 'none';
-          const fallbackImage = container.querySelector('.fallback-image');
-          if (fallbackImage) fallbackImage.style.display = 'block';
-          showToast('3D model not available.', 'info');
-        }
-      }
-    }, { threshold: 0.1 });
-    heroObserver.observe(heroSection);
-  }
-
   // Render products
   async function renderProducts(category = 'all') {
     const grid = document.querySelector('.product-grid');
-    if (!grid) return;
+    if (!grid) {
+      showToast('Product grid not found.', 'error');
+      return;
+    }
     grid.classList.add('loading');
 
     const filteredProducts = category === 'all'
@@ -291,11 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
     pageProducts.forEach(p => {
       const card = document.createElement('div');
       card.className = 'product-card';
+      const imageSrc = p.images && p.images[0] ? p.images[0] : '/images/placeholder.png';
       card.innerHTML = `
-        ${p.isNew ? '<span class="new-badge">New</span>' : ''}
         <span class="category-badge">${p.category}</span>
         <button class="wishlist-btn" data-id="${p.id}" aria-label="Add ${p.name} to wishlist"><i class="fas fa-heart"></i></button>
-        <img src="${p.thumbnail || p.image}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${p.image}', 'error');" />
+        <img src="${imageSrc}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
         <div class="content">
           <h3>${p.name}</h3>
           <p>${p.description}</p>
@@ -310,7 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const loadMoreBtn = document.getElementById('load-more-btn');
-    loadMoreBtn.style.display = end >= filteredProducts.length ? 'none' : 'block';
+    if (loadMoreBtn) {
+      loadMoreBtn.style.display = end >= filteredProducts.length ? 'none' : 'block';
+    }
     grid.classList.remove('loading');
 
     document.querySelectorAll('.quick-view-btn').forEach(btn => {
@@ -330,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProducts(category);
   }
 
-  // Open quick view modal
+  // Open quick view modal with carousel
   function openQuickView(productId) {
     const product = products.find(p => p.id == productId);
     if (!product) {
@@ -342,13 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameElement = modal.querySelector('#modal-product-name');
     const descElement = modal.querySelector('#modal-product-description');
     const priceElement = modal.querySelector('#modal-product-price');
-    const modelElement = document.getElementById('product-3d-model');
     const carousel = modal.querySelector('.carousel');
     const customizationDiv = document.getElementById('customization-options');
     const relatedGrid = document.getElementById('related-products-grid');
     const addToCartBtn = modal.querySelector('#add-to-cart-btn');
+    const saveForLaterBtn = modal.querySelector('#save-for-later-btn');
 
-    if (!nameElement || !descElement || !priceElement || !modelElement || !carousel || !customizationDiv || !relatedGrid || !addToCartBtn) {
+    if (!nameElement || !descElement || !priceElement || !carousel || !customizationDiv || !relatedGrid || !addToCartBtn || !saveForLaterBtn) {
       showToast('Error displaying product details.', 'error');
       return;
     }
@@ -357,25 +159,27 @@ document.addEventListener('DOMContentLoaded', () => {
     descElement.textContent = product.description || 'No description available.';
     priceElement.textContent = product.price ? `$${product.price.toFixed(2)}` : 'Price unavailable';
 
-    carousel.innerHTML = (product.images || [product.image]).map((img, i) => `
-      <img src="${img}" alt="${product.name} view ${i + 1}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
-    `).join('');
+    // Populate carousel
+    carousel.innerHTML = `
+      <div class="carousel-inner">
+        ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
+          <img src="${img}" alt="${product.name} view ${i + 1}" class="carousel-item ${i === 0 ? 'active' : ''}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
+        `).join('') : `<img src="/images/placeholder.png" alt="${product.name} view 1" class="carousel-item active" loading="lazy" />`}
+      </div>
+      <button class="carousel-prev" aria-label="Previous image">&#10094;</button>
+      <button class="carousel-next" aria-label="Next image">&#10095;</button>
+    `;
 
     customizationDiv.innerHTML = product.customization ? `
       <label for="custom-input">${product.customization.label}</label>
-      ${product.customization.type === 'select' ? 
-        `<select id="custom-input">
-           ${product.customization.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
-         </select>` :
-        `<input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}">`
-      }
+      <input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}">
     ` : '<p>No customization available.</p>';
 
     relatedGrid.innerHTML = (product.relatedProducts || []).map(relatedId => {
       const related = products.find(p => p.id == relatedId);
       return related ? `
         <div class="related-product">
-          <img src="${related.image}" alt="${related.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.image}', 'error');" />
+          <img src="${related.images[0] || '/images/placeholder.png'}" alt="${related.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.images[0]}', 'error');" />
           <span>${related.name}</span>
         </div>
       ` : '';
@@ -384,23 +188,42 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'block';
     modal.focus();
 
-    modelElement.innerHTML = '<p>Loading 3D model...</p>';
-    if (product.modelUrl) {
-      render3DModel(product.modelUrl, modelElement);
-    } else {
-      const container = modelElement.closest('.canvas-container');
-      container.classList.add('model-failed');
-      modelElement.style.display = 'none';
-      const fallbackImage = container.querySelector('.fallback-image');
-      if (fallbackImage) fallbackImage.style.display = 'block';
-      showToast('3D model not available.', 'info');
+    // Carousel navigation
+    const carouselInner = carousel.querySelector('.carousel-inner');
+    const carouselItems = carousel.querySelectorAll('.carousel-item');
+    let currentIndex = 0;
+
+    function updateCarousel() {
+      carouselItems.forEach((item, i) => {
+        item.classList.toggle('active', i === currentIndex);
+      });
     }
 
-    const newBtn = addToCartBtn.cloneNode(true);
-    addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
-    newBtn.dataset.id = productId;
-    newBtn.addEventListener('click', () => {
+    carousel.querySelector('.carousel-prev').addEventListener('click', () => {
+      currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselItems.length - 1;
+      updateCarousel();
+    });
+
+    carousel.querySelector('.carousel-next').addEventListener('click', () => {
+      currentIndex = (currentIndex < carouselItems.length - 1) ? currentIndex + 1 : 0;
+      updateCarousel();
+    });
+
+    // Add to cart button
+    const newAddBtn = addToCartBtn.cloneNode(true);
+    addToCartBtn.parentNode.replaceChild(newAddBtn, addToCartBtn);
+    newAddBtn.dataset.id = productId;
+    newAddBtn.addEventListener('click', () => {
       addToCart(productId);
+      closeModal();
+    });
+
+    // Save for later button
+    const newSaveBtn = saveForLaterBtn.cloneNode(true);
+    saveForLaterBtn.parentNode.replaceChild(newSaveBtn, saveForLaterBtn);
+    newSaveBtn.dataset.id = productId;
+    newSaveBtn.addEventListener('click', () => {
+      toggleWishlist(productId);
       closeModal();
     });
   }
@@ -408,10 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modal
   function closeModal() {
     const modal = document.getElementById('quick-view-modal');
-    if (modal) {
-      modal.style.display = 'none';
-      disposeThreeJsResources('product-3d-model');
-    }
+    if (modal) modal.style.display = 'none';
   }
 
   // Add to cart
@@ -445,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function toggleWishlist(productId) {
     if (wishlist.includes(productId)) {
       wishlist = wishlist.filter(id => id != productId);
-      showToast('Removed from wishlist.', 'info');
+      showToast('_removed from wishlist.', 'info');
     } else {
       wishlist.push(productId);
       showToast('Added to wishlist!', 'success');
@@ -478,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render cart page
   function renderCartPage() {
     const cartSection = document.getElementById('cart');
-    const cartItems = cartSection.querySelector('.cart-items');
+    const cartItems = cartSection?.querySelector('.cart-items');
     if (!cartItems) return;
 
     if (cart.length === 0) {
@@ -492,8 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!product) return;
       const div = document.createElement('div');
       div.className = 'cart-item';
+      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
       div.innerHTML = `
-        <img src="${product.image}" alt="${product.name}" width="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${product.image}', 'error');" />
+        <img src="${imageSrc}" alt="${product.name}" width="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
         <h3>${product.name}</h3>
         <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" aria-label="Quantity for ${product.name}"></p>
         <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
@@ -541,9 +362,10 @@ document.addEventListener('DOMContentLoaded', () => {
     miniCartContent.innerHTML = cart.map(item => {
       const product = products.find(p => p.id == item.id);
       if (!product) return '';
+      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
       return `
         <div class="mini-cart-item">
-          <img src="${product.image}" alt="${product.name}" width="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${product.image}', 'error');" />
+          <img src="${imageSrc}" alt="${product.name}" width="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
           <span>${product.name} x ${item.quantity}</span>
           <span>$${(product.price * item.quantity).toFixed(2)}</span>
         </div>
@@ -559,15 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (hash === '#cart') {
       renderCartPage();
-      disposeThreeJsResources('hero-3d-model');
-      disposeThreeJsResources('product-3d-model');
-    } else if (hash === '#home') {
-      heroModelLoaded = false;
-      disposeThreeJsResources('product-3d-model');
-      setupHero3DModel();
-    } else {
-      disposeThreeJsResources('hero-3d-model');
-      disposeThreeJsResources('product-3d-model');
     }
   }
 
@@ -595,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     grid.innerHTML = data.map(testimonial => `
       <div class="testimonial">
-        <img src="${testimonial.image}" alt="${testimonial.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
+        <img src="${testimonial.image || '/images/placeholder.png'}" alt="${testimonial.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
         <p>"${testimonial.quote}"</p>
         <h4>${testimonial.name}</h4>
       </div>
@@ -612,31 +425,38 @@ document.addEventListener('DOMContentLoaded', () => {
     updateWishlistButtons();
     handleHashChange();
     setupIntersectionObserver();
-    setupHero3DModel();
+
+    // Ensure close button event listener
+    const closeBtn = document.querySelector('.close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
   }
 
   // Event listeners
   const navToggle = document.querySelector('.nav-toggle');
   const navLinks = document.querySelector('.nav-links');
-  navToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('nav-open');
-    navToggle.classList.toggle('active');
-    navToggle.setAttribute('aria-expanded', navLinks.classList.contains('nav-open'));
-  });
-  navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('nav-open');
-      navToggle.classList.remove('active');
-      navToggle.setAttribute('aria-expanded', 'false');
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('nav-open');
+      navToggle.classList.toggle('active');
+      navToggle.setAttribute('aria-expanded', navLinks.classList.contains('nav-open'));
     });
-  });
-  document.addEventListener('click', (e) => {
-    if (!navLinks.contains(e.target) && !navToggle.contains(e.target) && navLinks.classList.contains('nav-open')) {
-      navLinks.classList.remove('nav-open');
-      navToggle.classList.remove('active');
-      navToggle.setAttribute('aria-expanded', 'false');
-    }
-  });
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('nav-open');
+        navToggle.classList.remove('active');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!navLinks.contains(e.target) && !navToggle.contains(e.target) && navLinks.classList.contains('nav-open')) {
+        navLinks.classList.remove('nav-open');
+        navToggle.classList.remove('active');
+        navToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 
   document.querySelectorAll('.occasion-btn').forEach(btn => {
     btn.addEventListener('click', debounce(() => {
@@ -646,19 +466,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300));
   });
 
-  document.getElementById('load-more-btn').addEventListener('click', () => {
-    currentPage++;
-    renderProducts(document.querySelector('.occasion-btn.active').dataset.category);
-  });
+  const loadMoreBtn = document.getElementById('load-more-btn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      currentPage++;
+      renderProducts(document.querySelector('.occasion-btn.active').dataset.category);
+    });
+  }
 
   const cartLink = document.querySelector('.cart-link');
   const miniCartDropdown = document.querySelector('.mini-cart-dropdown');
-  cartLink.addEventListener('mouseenter', () => {
-    miniCartDropdown.style.display = 'block';
-  });
-  cartLink.addEventListener('mouseleave', () => {
-    miniCartDropdown.style.display = 'none';
-  });
+  if (cartLink && miniCartDropdown) {
+    cartLink.addEventListener('mouseenter', () => {
+      miniCartDropdown.style.display = 'block';
+    });
+    cartLink.addEventListener('mouseleave', () => {
+      miniCartDropdown.style.display = 'none';
+    });
+  }
 
   document.querySelectorAll('.faq-question').forEach(question => {
     question.addEventListener('click', () => {
@@ -684,7 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const modal = document.getElementById('quick-view-modal');
-  document.querySelector('.close-btn').addEventListener('click', closeModal);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal?.style.display === 'block') closeModal();
   });
@@ -695,9 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cleanup on unload
   window.addEventListener('unload', () => {
-    renderers.forEach((_, canvasId) => disposeThreeJsResources(canvasId));
-    if (heroObserver) heroObserver.disconnect();
-    document.querySelectorAll('.quick-view-btn, .add-to-cart-btn, .wishlist-btn, .remove-btn, input[type="number"]').forEach(el => {
+    document.querySelectorAll('.quick-view-btn, .add-to-cart-btn, .wishlist-btn, .remove-btn, input[type="number"], .carousel-prev, .carousel-next, .close-btn').forEach(el => {
       el.replaceWith(el.cloneNode(true));
     });
   });

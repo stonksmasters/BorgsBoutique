@@ -25,7 +25,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    /* Inline critical CSS for above-the-fold content */
     header {
       position: sticky;
       top: 0;
@@ -72,7 +71,7 @@
     </div>
   </header>
 
-  <!-- Hero Section with 3D Model -->
+  <!-- Hero Section -->
   <section id="home" class="hero" role="banner">
     <div class="container hero-content">
       <div class="hero-text">
@@ -81,10 +80,7 @@
         <a href="#shop" class="btn" role="button" aria-label="Discover our collection">Discover Our Collection</a>
       </div>
       <div class="hero-images">
-        <div class="canvas-container">
-          <canvas id="hero-3d-model" aria-label="3D model of featured product"></canvas>
-          <img src="/images/fallback-hero.webp" alt="Featured 3D-printed keepsake" class="fallback-image" loading="lazy" />
-        </div>
+        <img src="/images/hero.gif" alt="Animated 3D-printed keepsake showcase" class="hero-image" loading="lazy" />
       </div>
     </div>
   </section>
@@ -124,10 +120,6 @@
         <div class="modal-content">
           <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
           <div class="product-details">
-            <div class="canvas-container">
-              <canvas id="product-3d-model" aria-label="3D model of product"></canvas>
-              <img src="/images/fallback-product.webp" alt="Product fallback image" class="fallback-image" loading="lazy" />
-            </div>
             <div class="carousel" aria-label="Product image carousel">
               <!-- Populated via JS -->
             </div>
@@ -251,10 +243,6 @@
   </div>
 
   <!-- Scripts -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/draco/draco_loader.js"></script>
   <script defer src="/js/script.js"></script>
 </body>
 </html>
