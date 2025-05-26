@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
   let currentPage = 0;
   const productsPerPage = 6;
+  let imageErrorShown = sessionStorage.getItem('imageErrorShown') === 'true';
 
   // Toast notification
   function showToast(message, type = 'success') {
@@ -25,9 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Fetch products with cache-busting
-  async function fetchProducts() {
-    localStorage.removeItem('products');
+  // Fetch products with retry mechanism
+  async function fetchProducts(attempts = 3) {
     try {
       const cacheBuster = `?v=${Date.now()}`;
       const response = await fetch(`/product.json${cacheBuster}`);
@@ -36,7 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('products', JSON.stringify(products));
       return products;
     } catch (error) {
-      showToast('Unable to load products. Please try again.', 'error');
+      if (attempts > 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchProducts(attempts - 1);
+      }
+      showToast('Unable to load products. Please try again later.', 'error');
       return [];
     }
   }
@@ -52,17 +56,25 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('testimonials', JSON.stringify(data));
       return data;
     } catch (error) {
-      console.error('Failed to fetch testimonials:', error);
       showToast('Testimonials unavailable. Showing default.', 'info');
-      const defaultTestimonial = [
-        {
-          image: '/images/placeholder.png',
-          quote: 'Beautiful craftsmanship! Our custom lamp is a cherished keepsake.',
-          name: 'Jane Doe'
-        }
-      ];
+      const defaultTestimonial = [{
+        image: '/images/placeholder.png',
+        quote: 'Beautiful craftsmanship! Our custom lamp is a cherished keepsake.',
+        name: 'Jane Doe'
+      }];
       localStorage.setItem('testimonials', JSON.stringify(defaultTestimonial));
       return defaultTestimonial;
+    }
+  }
+
+  // Handle image errors
+  function handleImageError(img, src) {
+    img.onerror = null;
+    img.src = '/images/placeholder.png';
+    if (!imageErrorShown) {
+      showToast(`Failed to load image: ${src}`, 'error');
+      sessionStorage.setItem('imageErrorShown', 'true');
+      imageErrorShown = true;
     }
   }
 
@@ -92,13 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pageProducts.forEach(p => {
       const card = document.createElement('div');
       card.className = 'product-card';
-      const imageSrc = p.images && p.images[0] ? p.images[0] : '/images/placeholder.png';
+      const imageSrc = p.images?.[0] ?? '/images/placeholder.png';
       card.innerHTML = `
         <span class="category-badge">${p.category}</span>
         <button class="wishlist-btn ${favorites.some(fav => fav.id === p.id) ? 'active' : ''}" data-id="${p.id}" aria-label="${favorites.some(fav => fav.id === p.id) ? 'Remove' : 'Add'} ${p.name} to favorites">
           <i class="${favorites.some(fav => fav.id === p.id) ? 'fas' : 'far'} fa-heart"></i>
         </button>
-        <img src="${imageSrc}" alt="${p.name}" width="200" height="200" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+        <img src="${imageSrc}" alt="${p.name}" width="200" height="200" loading="lazy" onerror="handleImageError(this, '${imageSrc}')" />
         <div class="content">
           <h3>${p.name}</h3>
           <p>${p.description}</p>
@@ -118,13 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     grid.classList.remove('loading');
 
-    document.querySelectorAll('.quick-view-btn').forEach(btn => {
+    // Attach event listeners
+    grid.querySelectorAll('.quick-view-btn').forEach(btn => {
+      btn.removeEventListener('click', openQuickView);
       btn.addEventListener('click', () => openQuickView(btn.dataset.id));
     });
-    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    grid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.removeEventListener('click', addToCart);
       btn.addEventListener('click', () => addToCart(btn.dataset.id));
     });
-    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+    grid.querySelectorAll('.wishlist-btn').forEach(btn => {
+      btn.removeEventListener('click', toggleFavorite);
       btn.addEventListener('click', () => toggleFavorite(btn.dataset.id));
     });
   }
@@ -144,13 +160,13 @@ document.addEventListener('DOMContentLoaded', () => {
     favorites.forEach(product => {
       const card = document.createElement('div');
       card.className = 'product-card';
-      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
+      const imageSrc = product.images?.[0] ?? '/images/placeholder.png';
       card.innerHTML = `
         <span class="category-badge">${product.category}</span>
-        <button class="wishlist-btn ${favorites.some(fav => fav.id === product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Remove ${product.name} from favorites">
+        <button class="wishlist-btn active" data-id="${product.id}" aria-label="Remove ${product.name} from favorites">
           <i class="fas fa-heart"></i>
         </button>
-        <img src="${imageSrc}" alt="${product.name}" width="200" height="200" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+        <img src="${imageSrc}" alt="${product.name}" width="200" height="200" loading="lazy" onerror="handleImageError(this, '${imageSrc}')" />
         <div class="content">
           <h3>${product.name}</h3>
           <span class="price">$${product.price.toFixed(2)}</span>
@@ -164,12 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     favoritesGrid.querySelectorAll('.wishlist-btn').forEach(btn => {
+      btn.removeEventListener('click', toggleFavorite);
       btn.addEventListener('click', () => toggleFavorite(btn.dataset.id));
     });
     favoritesGrid.querySelectorAll('.quick-view-btn').forEach(btn => {
+      btn.removeEventListener('click', openQuickView);
       btn.addEventListener('click', () => openQuickView(btn.dataset.id));
     });
-    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    favoritesGrid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.removeEventListener('click', addToCart);
       btn.addEventListener('click', () => addToCart(btn.dataset.id));
     });
   }
@@ -211,24 +230,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate carousel
     carousel.innerHTML = `
       <div class="carousel-inner">
-        ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
-          <img src="${img}" alt="${product.name} view ${i + 1}" class="carousel-item ${i === 0 ? 'active' : ''}" width="300" height="300" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
+        ${product.images?.length > 0 ? product.images.map((img, i) => `
+          <img src="${img}" alt="${product.name} view ${i + 1}" class="carousel-item ${i === 0 ? 'active' : ''}" width="300" height="300" loading="lazy" onerror="handleImageError(this, '${img}')" />
         `).join('') : `<img src="/images/placeholder.png" alt="${product.name} view 1" class="carousel-item active" width="300" height="300" loading="lazy" />`}
       </div>
       <button class="carousel-prev" aria-label="Previous image">❮</button>
       <button class="carousel-next" aria-label="Next image">❯</button>
     `;
 
+    // Customization options
     customizationDiv.innerHTML = product.customization ? `
       <label for="custom-input">${product.customization.label}</label>
-      <input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}">
+      <input type="${product.customization.type === 'image' ? 'file' : 'text'}" id="custom-input" placeholder="${product.customization.label}" accept="${product.customization.type === 'image' ? 'image/*' : ''}" aria-label="${product.customization.label}" data-type="${product.customization.type}">
     ` : '<p>No customization available.</p>';
 
+    // Related products
     relatedGrid.innerHTML = (product.relatedProducts || []).map(relatedId => {
       const related = products.find(p => p.id == relatedId);
       return related ? `
         <div class="related-product">
-          <img src="${related.images[0] || '/images/placeholder.png'}" alt="${related.name}" width="100" height="100" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.images[0]}', 'error');" />
+          <img src="${related.images?.[0] ?? '/images/placeholder.png'}" alt="${related.name}" width="100" height="100" loading="lazy" onerror="handleImageError(this, '${related.images?.[0]}')" />
           <span>${related.name}</span>
         </div>
       ` : '';
@@ -238,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveForLaterBtn.dataset.id = productId;
 
     modal.style.display = 'block';
-    modal.focus();
+    modal.querySelector('.modal-content').focus();
 
     // Carousel navigation
     const carouselInner = carousel.querySelector('.carousel-inner');
@@ -246,18 +267,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentIndex = 0;
 
     function updateCarousel() {
-      carouselItems.forEach((item, i) => {
-        item.classList.toggle('active', i === currentIndex);
+      requestAnimationFrame(() => {
+        carouselItems.forEach((item, i) => {
+          item.classList.toggle('active', i === currentIndex);
+        });
       });
     }
 
     carousel.querySelector('.carousel-prev').addEventListener('click', () => {
-      currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselItems.length - 1;
+      currentIndex = currentIndex > 0 ? currentIndex - 1 : carouselItems.length - 1;
       updateCarousel();
     });
 
     carousel.querySelector('.carousel-next').addEventListener('click', () => {
-      currentIndex = (currentIndex < carouselItems.length - 1) ? currentIndex + 1 : 0;
+      currentIndex = currentIndex < carouselItems.length - 1 ? currentIndex + 1 : 0;
       updateCarousel();
     });
 
@@ -266,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addToCartBtn.parentNode.replaceChild(newAddBtn, addToCartBtn);
     newAddBtn.dataset.id = productId;
     newAddBtn.addEventListener('click', () => {
-      addToCart(productId);
+      addToCart(productId, true);
       closeModal();
     });
 
@@ -283,21 +306,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close modal
   function closeModal() {
     const modal = document.getElementById('quick-view-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'none';
+      document.querySelector('header').focus();
+    }
   }
 
   // Add to cart
-  function addToCart(productId) {
+  function addToCart(productId, fromModal = false) {
     const product = products.find(p => p.id == productId);
     if (!product) {
       showToast('Product not available.', 'error');
       return;
     }
-    const existingItem = cart.find(item => item.id == productId);
+
+    let customization = null;
+    if (fromModal && product.customization) {
+      const input = document.getElementById('custom-input');
+      if (input) {
+        if (product.customization.type === 'image' && input.files?.[0]) {
+          customization = { type: 'image', fileName: input.files[0].name };
+        } else if (product.customization.type === 'text' && input.value.trim()) {
+          customization = { type: 'text', value: input.value.trim() };
+        } else {
+          showToast('Please provide customization details.', 'error');
+          return;
+        }
+      }
+    }
+
+    const existingItem = cart.find(item => item.id == productId && JSON.stringify(item.customization) === JSON.stringify(customization));
     if (existingItem) {
       existingItem.quantity++;
     } else {
-      cart.push({ id: productId, quantity: 1 });
+      cart.push({ id: productId, quantity: 1, customization });
     }
     saveCart();
     updateMiniCart();
@@ -305,12 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Remove from cart
-  function removeFromCart(productId) {
-    cart = cart.filter(item => item.id != productId);
+  function removeFromCart(productId, customizationIndex) {
+    cart = cart.filter((item, index) => !(item.id == productId && index === customizationIndex));
     saveCart();
     renderCartPage();
     updateMiniCart();
-    showToast('Item removed from cart.', 'success');
+    showToast('Product removed from cart.', 'success');
   }
 
   // Toggle favorite
@@ -374,46 +416,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartItems = cartSection?.querySelector('.cart-items');
     if (!cartItems) return;
 
+    cartItems.innerHTML = '';
     if (cart.length === 0) {
       cartItems.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
       return;
     }
 
-    cartItems.innerHTML = '';
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
       const product = products.find(p => p.id == item.id);
       if (!product) return;
       const div = document.createElement('div');
       div.className = 'cart-item';
-      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
+      const imageSrc = product.images?.[0] ?? '/images/placeholder.png';
       div.innerHTML = `
-        <img src="${imageSrc}" alt="${product.name}" width="50" height="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
-        <h3>${product.name}</h3>
-        <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" aria-label="Quantity for ${product.name}"></p>
-        <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
-        <button class="remove-btn" data-id="${item.id}" aria-label="Remove ${product.name} from cart">Remove</button>
+        <img src="${imageSrc}" alt="${product.name}" width="50" height="50" loading="lazy" onerror="handleImageError(this, '${imageSrc}')" />
+        <div class="cart-item-details">
+          <h3>${product.name}</h3>
+          ${item.customization ? `
+            <p>Customization: ${item.customization.type === 'image' ? `Image (${item.customization.fileName})` : item.customization.value}</p>
+          ` : ''}
+          <p>Price: $${product.price.toFixed(2)}</p>
+          <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" data-custom-index="${index}" aria-label="Quantity for ${product.name}"></p>
+          <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
+          <button class="remove-btn" data-id="${item.id}" data-custom-index="${index}" aria-label="Remove ${product.name} from cart">Remove</button>
+        </div>
       `;
       cartItems.appendChild(div);
     });
 
     cartItems.querySelectorAll('input[type="number"]').forEach(input => {
-      input.addEventListener('change', (e) => {
-        const id = e.target.dataset.id;
-        const newQty = parseInt(e.target.value);
-        if (newQty > 0) {
-          const item = cart.find(i => i.id == id);
-          if (item) {
-            item.quantity = newQty;
-            saveCart();
-            renderCartPage();
-          }
-        } else {
-          removeFromCart(id);
-        }
-      });
+      input.removeEventListener('change', updateCartQuantity);
+      input.addEventListener('change', updateCartQuantity);
     });
     cartItems.querySelectorAll('.remove-btn').forEach(btn => {
-      btn.addEventListener('click', () => removeFromCart(btn.dataset.id));
+      btn.removeEventListener('click', removeFromCartHandler);
+      btn.addEventListener('click', removeFromCartHandler);
     });
 
     const total = cart.reduce((sum, item) => {
@@ -422,6 +459,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 0);
     const totalElement = cartSection.querySelector('.cart-total h3');
     if (totalElement) totalElement.textContent = `Total: $${total.toFixed(2)}`;
+  }
+
+  function updateCartQuantity(e) {
+    const id = e.target.dataset.id;
+    const customIndex = Number(e.target.dataset.customIndex);
+    const newQty = parseInt(e.target.value);
+    if (newQty > 0) {
+      const item = cart.find((i, idx) => i.id == id && idx === customIndex);
+      if (item) {
+        item.quantity = newQty;
+        saveCart();
+        renderCartPage();
+      }
+    } else {
+      removeFromCart(id, customIndex);
+    }
+  }
+
+  function removeFromCartHandler() {
+    const id = this.dataset.id;
+    const customIndex = Number(this.dataset.customIndex);
+    removeFromCart(id, customIndex);
   }
 
   // Update mini-cart
@@ -435,11 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
     miniCartContent.innerHTML = cart.map(item => {
       const product = products.find(p => p.id == item.id);
       if (!product) return '';
-      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
+      const imageSrc = product.images?.[0] ?? '/images/placeholder.png';
       return `
         <div class="mini-cart-item">
-          <img src="${imageSrc}" alt="${product.name}" width="30" height="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
-          <span>${product.name} x ${item.quantity}</span>
+          <img src="${imageSrc}" alt="${product.name}" width="30" height="30" loading="lazy" onerror="handleImageError(this, '${imageSrc}')" />
+          <span>${product.name} x ${item.quantity}${item.customization ? ` (${item.customization.type === 'image' ? 'Image' : item.customization.value})` : ''}</span>
           <span>$${(product.price * item.quantity).toFixed(2)}</span>
         </div>
       `;
@@ -450,79 +509,41 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleHashChange() {
     const hash = window.location.hash || '#home';
     const sections = document.querySelectorAll('section');
+    const alwaysVisible = ['faq', 'testimonials', 'newsletter'];
     const shopSection = document.getElementById('shop');
     const favoritesSection = document.getElementById('favorites');
     const homeSection = document.getElementById('home');
-    const faqSection = document.querySelector('section.faq') || document.getElementById('faq');
-    const testimonialsSection = document.querySelector('section.testimonials') || document.getElementById('testimonials');
-    const newsletterSection = document.querySelector('section.newsletter') || document.getElementById('newsletter');
-
-    console.log('All section IDs:', Array.from(sections).map(s => s.id));
 
     sections.forEach(sec => {
-      sec.style.display = 'none';
+      sec.style.display = alwaysVisible.includes(sec.id) ? 'block' : 'none';
     });
 
     if (hash === '#home') {
-      console.log('Navigating to #home');
-      if (homeSection) {
-        homeSection.style.display = 'block';
-        console.log('#home section displayed');
-      } else {
-        console.error('#home section not found');
-      }
-      if (faqSection) {
-        faqSection.style.display = 'block';
-        console.log('#faq section displayed');
-      } else {
-        console.error('#faq section not found');
-      }
-      if (testimonialsSection) {
-        testimonialsSection.style.display = 'block';
-        renderTestimonials();
-        console.log('#testimonials section displayed');
-      } else {
-        console.error('#testimonials section not found');
-      }
-      if (newsletterSection) {
-        newsletterSection.style.display = 'block';
-        console.log('#newsletter section displayed');
-      } else {
-        console.error('#newsletter section not found');
-      }
+      if (homeSection) homeSection.style.display = 'block';
+      renderTestimonials();
     } else if (hash === '#favorites') {
       if (shopSection && favoritesSection) {
         shopSection.style.display = 'block';
         renderFavorites();
         favoritesSection.scrollIntoView({ behavior: 'smooth' });
-        console.log('#favorites section displayed within #shop');
-      } else {
-        console.error('#shop or #favorites section not found');
       }
     } else if (hash === '#shop') {
       if (shopSection) {
         shopSection.style.display = 'block';
         renderProducts();
-        console.log('#shop section displayed');
-      } else {
-        console.error('#shop section not found');
       }
     } else if (hash === '#cart') {
       const cartSection = document.getElementById('cart');
       if (cartSection) {
         cartSection.style.display = 'block';
         renderCartPage();
-        console.log('#cart section displayed');
-      } else {
-        console.error('#cart section not found');
+        cartSection.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
       const targetSection = document.getElementById(hash.substring(1));
       if (targetSection) {
         targetSection.style.display = 'block';
-        console.log(`#${hash.substring(1)} section displayed`);
-      } else {
-        console.error(`Section ${hash} not found`);
+        targetSection.scrollIntoView({ behavior: 'smooth' });
       }
     }
   }
@@ -543,10 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render testimonials
   async function renderTestimonials() {
     const grid = document.querySelector('.testimonial-grid');
-    if (!grid) {
-      console.error('Testimonial grid not found');
-      return;
-    }
+    if (!grid) return;
     const data = await fetchTestimonials();
     if (data.length === 0) {
       grid.innerHTML = '<p>No testimonials available.</p>';
@@ -554,12 +572,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     grid.innerHTML = data.map(testimonial => `
       <div class="testimonial">
-        <img src="${testimonial.image || '/images/placeholder.png'}" alt="${testimonial.name}" width="100" height="100" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
+        <img src="${testimonial.image || '/images/placeholder.png'}" alt="${testimonial.name}" width="100" height="100" loading="lazy" onerror="handleImageError(this, '${testimonial.image}')" />
         <p>"${testimonial.quote}"</p>
         <h4>${testimonial.name}</h4>
       </div>
     `).join('');
-    console.log('Testimonials rendered');
   }
 
   // Initialize
@@ -571,10 +588,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
     updateMiniCart();
     updateFavoriteButtons();
-    setTimeout(handleHashChange, 0); // Ensure DOM is ready
+    setTimeout(handleHashChange, 0);
     setupIntersectionObserver();
 
-    // Ensure close button event listener
     const closeBtn = document.querySelector('.close-btn');
     if (closeBtn) {
       closeBtn.addEventListener('click', closeModal);
@@ -586,9 +602,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelector('.nav-links');
   if (navToggle && navLinks) {
     navToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('nav-open');
+      const isOpen = navLinks.classList.toggle('nav-open');
       navToggle.classList.toggle('active');
-      navToggle.setAttribute('aria-expanded', navLinks.classList.contains('nav-open'));
+      navToggle.setAttribute('aria-expanded', isOpen);
     });
     navLinks.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
@@ -618,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener('click', () => {
       currentPage++;
-      renderProducts(document.querySelector('.occasion-btn.active').dataset.category);
+      renderProducts(document.querySelector('.occasion-btn.active')?.dataset.category ?? 'all');
     });
   }
 
@@ -648,9 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailInput = form.querySelector('input[type="email"]');
       const email = emailInput.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('Please enter a valid email address.', 'error');
-      return;
-    }
+        showToast('Please enter a valid email address.', 'error');
+        return;
+      }
       showToast('Thank you for subscribing!', 'success');
       emailInput.value = '';
     });

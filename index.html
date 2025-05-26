@@ -22,158 +22,21 @@
   <meta name="twitter:image" content="https://borgsboutique.netlify.app/images/BBLogo.webp" />
   <meta name="twitter:image:alt" content="BorgsBoutique Logo" />
   <!-- Content Security Policy -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://*.cloudflare.com https://*.gstatic.com; font-src https://fonts.gstatic.com; script-src 'self'; style-src 'self' https://fonts.googleapis.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://*.cloudflare.com https://*.gstatic.com https://borgsboutique.netlify.app; font-src 'self' https://fonts.gstatic.com https://use.fontawesome.com https://cdnjs.cloudflare.com; script-src 'self'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; connect-src 'self' https://use.fontawesome.com https://cdnjs.cloudflare.com;">
   <!-- Preconnect and Preload -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" as="style">
   <link rel="stylesheet" href="/css/styles.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      color: #333;
-      background: #f8f4f0;
-    }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: rgba(208, 191, 179, 0.95);
-      padding: 1rem;
-      transition: box-shadow 0.3s ease;
-    }
-    header.scrolled {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .nav-links {
-      display: flex;
-      list-style: none;
-      gap: 1.5rem;
-      margin: 0;
-      padding: 0;
-    }
-    .nav-links a {
-      color: #333;
-      text-decoration: none;
-      font-size: 1rem;
-      padding: 12px;
-      min-width: 48px;
-      min-height: 48px;
-    }
-    .nav-toggle {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      cursor: pointer;
-    }
-    .nav-toggle span {
-      width: 25px;
-      height: 3px;
-      background: #333;
-    }
-    .hero {
-      background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('/images/hero-fallback.webp') center/cover fixed;
-      padding: 4rem 1rem;
-      text-align: center;
-    }
-    .hero-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .hero-text {
-      color: #000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 2rem;
-      border-radius: 8px;
-    }
-    .hero-text h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.5rem;
-      margin: 0 0 1rem;
-    }
-    .btn {
-      background: #d0bfb3;
-      color: #333;
-      padding: 0.75rem 1.5rem;
-      text-decoration: none;
-      border-radius: 4px;
-      display: inline-block;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    .testimonials, .faq, .newsletter, .cart, .shop {
-      padding: 2rem 0;
-      display: block;
-    }
-    .testimonial-grid {
-      min-height: 300px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-    .faq-answer {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-    .faq-answer[style*="block"] {
-      max-height: 200px;
-    }
-    .newsletter-text {
-      color: #000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 1rem;
-    }
-    footer {
-      background: #d0bfb3;
-      color: #333;
-      padding: 2rem 1rem;
-    }
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none;
-      }
-      .nav-links.nav-open {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        width: 100%;
-        background: #d0bfb3;
-        padding: 1rem;
-      }
-      .nav-toggle {
-        display: flex;
-      }
-      .hero-content {
-        flex-direction: column;
-      }
-    }
-  </style>
 </head>
 <body>
-  <!-- Header with Mini-Cart Dropdown -->
   <header role="banner">
     <div class="container nav">
       <a href="#home" class="logo" aria-label="BorgsBoutique Home">
-        <img src="/images/BBLogo.webp" alt="BorgsBoutique Logo" width="150" height="50" />
+        <img src="/images/BBLogo.webp" alt="BorgsBoutique Logo" width="150" height="50" loading="lazy" />
       </a>
       <nav aria-label="Main navigation">
         <ul class="nav-links">
@@ -190,7 +53,6 @@
             </div>
           </li>
         </ul>
-        <!-- Hamburger menu for mobile -->
         <div class="nav-toggle" aria-label="Toggle navigation" tabindex="0">
           <span></span>
           <span></span>
@@ -199,8 +61,6 @@
       </nav>
     </div>
   </header>
-
-  <!-- Hero Section -->
   <section id="home" class="hero">
     <div class="container hero-content">
       <div class="hero-text">
@@ -209,15 +69,13 @@
         <a href="#shop" class="btn" role="button" aria-label="Discover our collection">Discover Our Collection</a>
       </div>
       <div class="hero-images">
-        <video autoplay muted loop playsinline class="hero-image" width="600" height="400">
-          <source src="/images/hero.webm" type="video/webm">
-          <img src="/images/hero-fallback.webp" alt="Animated 3D-printed keepsake showcase" width="600" height="400">
+        <video autoplay muted loop playsinline class="hero-image" width="600" height="400" poster="/images/hero-poster.webp">
+          <source src="/images/Hero.webm" type="video/webm">
+          <img src="/images/hero-fallback.webp" alt="Animated 3D-printed keepsake showcase" width="600" height="400" loading="lazy">
         </video>
       </div>
     </div>
   </section>
-
-  <!-- Shop Section with Breadcrumbs and Quick View Modal -->
   <section id="shop" class="shop">
     <div class="container">
       <nav class="breadcrumbs" aria-label="Breadcrumb navigation">
@@ -243,22 +101,15 @@
       <div class="load-more">
         <button id="load-more-btn" class="btn" aria-label="Load more products">Load More</button>
       </div>
-      <div class="recently-viewed">
-        <h2>Recently Viewed</h2>
-        <div id="recently-viewed-grid"></div>
-      </div>
       <div id="favorites" class="favorites">
         <h2>Your Favorites</h2>
         <div id="favorites-grid"></div>
       </div>
-      <!-- Quick View Modal -->
       <div id="quick-view-modal" class="modal" role="dialog" aria-labelledby="modal-product-name" aria-hidden="true" tabindex="-1">
         <div class="modal-content">
           <span class="close-btn" aria-label="Close modal" tabindex="0">×</span>
           <div class="product-details">
-            <div class="carousel" aria-label="Product image carousel">
-              <!-- Populated via JS -->
-            </div>
+            <div class="carousel" aria-label="Product image carousel"></div>
             <div class="product-info">
               <h3 id="modal-product-name"></h3>
               <p id="modal-product-description"></p>
@@ -276,16 +127,12 @@
       </div>
     </div>
   </section>
-
-  <!-- Testimonials Section -->
   <section id="testimonials" class="testimonials">
     <div class="container">
       <h2>What Our Customers Say</h2>
       <div class="testimonial-grid"></div>
     </div>
   </section>
-
-  <!-- Cart Section -->
   <section id="cart" class="cart">
     <div class="container">
       <h2>Cart</h2>
@@ -296,27 +143,23 @@
       </div>
     </div>
   </section>
-
-  <!-- FAQ Section -->
   <section id="faq" class="faq">
     <div class="container">
       <h2>Frequently Asked Questions</h2>
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">What is your production timeframe? <i class="fas fa-chevron-down"></i></button>
-        <div class="faq-answer">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">What is your production timeframe? <i class="fas fa-chevron-down"></i></button>
+        <div id="faq-answer-1" class="faq-answer">
           <p>Design approval within 2 business days. Production and delivery complete in 5–7 business days.</p>
         </div>
       </div>
       <div class="faq-item">
-        <button class="faq-question" aria-expanded="false">Are materials pet-safe? <i class="fas fa-chevron-down"></i></button>
-        <div class="faq-answer">
+        <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">Are materials pet-safe? <i class="fas fa-chevron-down"></i></button>
+        <div id="faq-answer-2" class="faq-answer">
           <p>All our filaments are non-toxic and safe for households with pets and children.</p>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- Newsletter Section -->
   <section id="newsletter" class="newsletter">
     <div class="container newsletter-content">
       <div class="newsletter-text">
@@ -330,8 +173,6 @@
       </form>
     </div>
   </section>
-
-  <!-- Footer -->
   <footer role="contentinfo">
     <div class="container footer-content">
       <div class="footer-section">
@@ -370,11 +211,7 @@
       <p>© 2025 BorgsBoutique • All rights reserved</p>
     </div>
   </footer>
-
-  <!-- Floating Chat Widget -->
   <div class="chat-widget" aria-label="Live chat support"></div>
-
-  <!-- Scripts -->
   <script defer src="/js/script.min.js"></script>
 </body>
 </html>
