@@ -24,9 +24,10 @@
     "description": "Relief sculpture of your pet in detailed PLA",
     "price": 28.00,
     "images": [
-      "/images/ChloeCoin.png",
-      "/images/placeholder.png",
-      "/images/placeholder.png"
+      "/images/ChloeFront.png",
+      "/images/ChloeBack.png",
+      "/images/CalyFront.png",
+      "/images/CalyBack.png"
     ],
     "category": "Pet",
     "customization": {
@@ -58,9 +59,8 @@
     "description": "Personalized 3D-printed name plaque for nursery decor",
     "price": 22.00,
     "images": [
-      "/images/RCS.jpg",
-      "/images/placeholder.png",
-      "/images/placeholder.png"
+      "/images/RCSFront.png",
+      "/images/RCSAngled.png"
     ],
     "category": "Baby",
     "customization": {

@@ -121,7 +121,7 @@ header.scrolled {
   letter-spacing: 1px;
 }
 .nav-links a:hover,
-.nav-lines a:focus {
+.nav-links a:focus {
   background: var(--accent-gold);
   color: var(--accent-cream);
 }
@@ -341,8 +341,10 @@ header.scrolled {
   cursor: pointer;
   transition: color var(--transition-speed) ease;
 }
-.product-card .wishlist-btn:hover,
 .product-card .wishlist-btn.active {
+  color: var(--accent-blush);
+}
+.product-card .wishlist-btn:hover {
   color: var(--accent-blush);
 }
 .product-card .button-container {
@@ -396,6 +398,34 @@ header.scrolled {
   gap: var(--space-md);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Favorites Section */
+.favorites {
+  padding: var(--space-md);
+}
+.favorites h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+#favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+.empty-favorites {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  padding: var(--space-md);
+  border: 2px dashed var(--accent-gold);
+  border-radius: 12px;
+  margin: var(--space-lg) auto;
+  max-width: 400px;
 }
 
 /* Modal Styles */
@@ -1108,6 +1138,14 @@ footer {
   .recently-viewed-grid {
     flex-direction: column;
     align-items: center;
+  }
+  .favorites h2 {
+    font-size: 1.6rem;
+  }
+  #favorites-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    padding: var(--space-sm);
   }
 
   /* Modal */

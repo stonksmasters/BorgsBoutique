@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   let products = [];
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
-  let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+  let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
   let currentPage = 0;
   const productsPerPage = 6;
 
@@ -46,12 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const cached = localStorage.getItem('testimonials');
     if (cached) return JSON.parse(cached);
     try {
-      const response = await fetch('/testimonials.json');
+      const response = await fetch('/public/testimonials.json');
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
       const data = await response.json();
       localStorage.setItem('testimonials', JSON.stringify(data));
       return data;
     } catch (error) {
+      console.error('Failed to fetch testimonials:', error);
       showToast('Testimonials unavailable. Showing default.', 'info');
       const defaultTestimonial = [
         {
@@ -94,8 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const imageSrc = p.images && p.images[0] ? p.images[0] : '/images/placeholder.png';
       card.innerHTML = `
         <span class="category-badge">${p.category}</span>
-        <button class="wishlist-btn" data-id="${p.id}" aria-label="Add ${p.name} to wishlist"><i class="fas fa-heart"></i></button>
-        <img src="${imageSrc}" alt="${p.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+        <button class="wishlist-btn ${favorites.some(fav => fav.id === p.id) ? 'active' : ''}" data-id="${p.id}" aria-label="${favorites.some(fav => fav.id === p.id) ? 'Remove' : 'Add'} ${p.name} to favorites">
+          <i class="${favorites.some(fav => fav.id === p.id) ? 'fas' : 'far'} fa-heart"></i>
+        </button>
+        <img src="${imageSrc}" alt="${p.name}" width="200" height="200" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
         <div class="content">
           <h3>${p.name}</h3>
           <p>${p.description}</p>
@@ -122,7 +125,52 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => addToCart(btn.dataset.id));
     });
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
-      btn.addEventListener('click', () => toggleWishlist(btn.dataset.id));
+      btn.addEventListener('click', () => toggleFavorite(btn.dataset.id));
+    });
+  }
+
+  // Render favorites
+  function renderFavorites() {
+    const favoritesGrid = document.getElementById('favorites-grid');
+    if (!favoritesGrid) {
+      showToast('Favorites grid not found.', 'error');
+      return;
+    }
+    favoritesGrid.innerHTML = '';
+    if (favorites.length === 0) {
+      favoritesGrid.innerHTML = '<p class="empty-favorites">No favorites added yet.</p>';
+      return;
+    }
+    favorites.forEach(product => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
+      card.innerHTML = `
+        <span class="category-badge">${product.category}</span>
+        <button class="wishlist-btn ${favorites.some(fav => fav.id === product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Remove ${product.name} from favorites">
+          <i class="fas fa-heart"></i>
+        </button>
+        <img src="${imageSrc}" alt="${product.name}" width="200" height="200" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+        <div class="content">
+          <h3>${product.name}</h3>
+          <span class="price">$${product.price.toFixed(2)}</span>
+          <div class="button-container">
+            <button class="quick-view-btn" data-id="${product.id}" aria-label="Quick view ${product.name}">Quick View</button>
+            <button class="add-to-cart-btn" data-id="${product.id}" aria-label="Add ${product.name} to cart">Add to Cart</button>
+          </div>
+        </div>
+      `;
+      favoritesGrid.appendChild(card);
+    });
+
+    favoritesGrid.querySelectorAll('.wishlist-btn').forEach(btn => {
+      btn.addEventListener('click', () => toggleFavorite(btn.dataset.id));
+    });
+    favoritesGrid.querySelectorAll('.quick-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => openQuickView(btn.dataset.id));
+    });
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', () => addToCart(btn.dataset.id));
     });
   }
 
@@ -155,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    modal.dataset.id = productId;
     nameElement.textContent = product.name || 'Unknown Product';
     descElement.textContent = product.description || 'No description available.';
     priceElement.textContent = product.price ? `$${product.price.toFixed(2)}` : 'Price unavailable';
@@ -163,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
     carousel.innerHTML = `
       <div class="carousel-inner">
         ${product.images && product.images.length > 0 ? product.images.map((img, i) => `
-          <img src="${img}" alt="${product.name} view ${i + 1}" class="carousel-item ${i === 0 ? 'active' : ''}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
-        `).join('') : `<img src="/images/placeholder.png" alt="${product.name} view 1" class="carousel-item active" loading="lazy" />`}
+          <img src="${img}" alt="${product.name} view ${i + 1}" class="carousel-item ${i === 0 ? 'active' : ''}" width="300" height="300" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${img}', 'error');" />
+        `).join('') : `<img src="/images/placeholder.png" alt="${product.name} view 1" class="carousel-item active" width="300" height="300" loading="lazy" />`}
       </div>
-      <button class="carousel-prev" aria-label="Previous image">&#10094;</button>
-      <button class="carousel-next" aria-label="Next image">&#10095;</button>
+      <button class="carousel-prev" aria-label="Previous image">❮</button>
+      <button class="carousel-next" aria-label="Next image">❯</button>
     `;
 
     customizationDiv.innerHTML = product.customization ? `
@@ -179,11 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const related = products.find(p => p.id == relatedId);
       return related ? `
         <div class="related-product">
-          <img src="${related.images[0] || '/images/placeholder.png'}" alt="${related.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.images[0]}', 'error');" />
+          <img src="${related.images[0] || '/images/placeholder.png'}" alt="${related.name}" width="100" height="100" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${related.images[0]}', 'error');" />
           <span>${related.name}</span>
         </div>
       ` : '';
     }).join('');
+
+    saveForLaterBtn.textContent = favorites.some(fav => fav.id == productId) ? 'Remove from Favorites' : 'Save for Later';
+    saveForLaterBtn.dataset.id = productId;
 
     modal.style.display = 'block';
     modal.focus();
@@ -223,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     saveForLaterBtn.parentNode.replaceChild(newSaveBtn, saveForLaterBtn);
     newSaveBtn.dataset.id = productId;
     newSaveBtn.addEventListener('click', () => {
-      toggleWishlist(productId);
+      toggleFavorite(productId);
       closeModal();
     });
   }
@@ -261,25 +313,46 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Item removed from cart.', 'success');
   }
 
-  // Toggle wishlist
-  function toggleWishlist(productId) {
-    if (wishlist.includes(productId)) {
-      wishlist = wishlist.filter(id => id != productId);
-      showToast('_removed from wishlist.', 'info');
-    } else {
-      wishlist.push(productId);
-      showToast('Added to wishlist!', 'success');
+  // Toggle favorite
+  function toggleFavorite(productId) {
+    const product = products.find(p => p.id == productId);
+    if (!product) {
+      showToast('Product not available.', 'error');
+      return;
     }
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-    updateWishlistButtons();
+    const index = favorites.findIndex(fav => fav.id === product.id);
+    if (index === -1) {
+      favorites.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        images: product.images,
+        category: product.category
+      });
+      showToast(`Added "${product.name}" to favorites.`, 'success');
+    } else {
+      favorites.splice(index, 1);
+      showToast(`Removed "${product.name}" from favorites.`, 'info');
+    }
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    updateFavoriteButtons();
+    renderFavorites();
   }
 
-  // Update wishlist buttons
-  function updateWishlistButtons() {
+  // Update favorite buttons
+  function updateFavoriteButtons() {
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
-      const id = btn.dataset.id;
-      btn.classList.toggle('active', wishlist.includes(id));
+      const id = Number(btn.dataset.id);
+      btn.classList.toggle('active', favorites.some(fav => fav.id === id));
+      const icon = btn.querySelector('i');
+      icon.className = favorites.some(fav => fav.id === id) ? 'fas fa-heart' : 'far fa-heart';
+      btn.setAttribute('aria-label', `${favorites.some(fav => fav.id === id) ? 'Remove' : 'Add'} ${products.find(p => p.id === id)?.name || 'product'} to favorites`);
     });
+    const saveForLaterBtn = document.querySelector('#save-for-later-btn');
+    if (saveForLaterBtn) {
+      const id = Number(saveForLaterBtn.dataset.id);
+      saveForLaterBtn.textContent = favorites.some(fav => fav.id === id) ? 'Remove from Favorites' : 'Save for Later';
+    }
   }
 
   // Save cart
@@ -314,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       div.className = 'cart-item';
       const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
       div.innerHTML = `
-        <img src="${imageSrc}" alt="${product.name}" width="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+        <img src="${imageSrc}" alt="${product.name}" width="50" height="50" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
         <h3>${product.name}</h3>
         <p>Qty: <input type="number" value="${item.quantity}" min="1" data-id="${item.id}" aria-label="Quantity for ${product.name}"></p>
         <p>Subtotal: $${(product.price * item.quantity).toFixed(2)}</p>
@@ -365,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const imageSrc = product.images && product.images[0] ? product.images[0] : '/images/placeholder.png';
       return `
         <div class="mini-cart-item">
-          <img src="${imageSrc}" alt="${product.name}" width="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
+          <img src="${imageSrc}" alt="${product.name}" width="30" height="30" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${imageSrc}', 'error');" />
           <span>${product.name} x ${item.quantity}</span>
           <span>$${(product.price * item.quantity).toFixed(2)}</span>
         </div>
@@ -376,17 +449,87 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle navigation
   function handleHashChange() {
     const hash = window.location.hash || '#home';
-    document.querySelectorAll('section').forEach(sec => {
-      sec.style.display = ('#' + sec.id) === hash ? 'block' : 'none';
+    const sections = document.querySelectorAll('section');
+    const shopSection = document.getElementById('shop');
+    const favoritesSection = document.getElementById('favorites');
+    const homeSection = document.getElementById('home');
+    const faqSection = document.querySelector('section.faq') || document.getElementById('faq');
+    const testimonialsSection = document.querySelector('section.testimonials') || document.getElementById('testimonials');
+    const newsletterSection = document.querySelector('section.newsletter') || document.getElementById('newsletter');
+
+    console.log('All section IDs:', Array.from(sections).map(s => s.id));
+
+    sections.forEach(sec => {
+      sec.style.display = 'none';
     });
-    if (hash === '#cart') {
-      renderCartPage();
+
+    if (hash === '#home') {
+      console.log('Navigating to #home');
+      if (homeSection) {
+        homeSection.style.display = 'block';
+        console.log('#home section displayed');
+      } else {
+        console.error('#home section not found');
+      }
+      if (faqSection) {
+        faqSection.style.display = 'block';
+        console.log('#faq section displayed');
+      } else {
+        console.error('#faq section not found');
+      }
+      if (testimonialsSection) {
+        testimonialsSection.style.display = 'block';
+        renderTestimonials();
+        console.log('#testimonials section displayed');
+      } else {
+        console.error('#testimonials section not found');
+      }
+      if (newsletterSection) {
+        newsletterSection.style.display = 'block';
+        console.log('#newsletter section displayed');
+      } else {
+        console.error('#newsletter section not found');
+      }
+    } else if (hash === '#favorites') {
+      if (shopSection && favoritesSection) {
+        shopSection.style.display = 'block';
+        renderFavorites();
+        favoritesSection.scrollIntoView({ behavior: 'smooth' });
+        console.log('#favorites section displayed within #shop');
+      } else {
+        console.error('#shop or #favorites section not found');
+      }
+    } else if (hash === '#shop') {
+      if (shopSection) {
+        shopSection.style.display = 'block';
+        renderProducts();
+        console.log('#shop section displayed');
+      } else {
+        console.error('#shop section not found');
+      }
+    } else if (hash === '#cart') {
+      const cartSection = document.getElementById('cart');
+      if (cartSection) {
+        cartSection.style.display = 'block';
+        renderCartPage();
+        console.log('#cart section displayed');
+      } else {
+        console.error('#cart section not found');
+      }
+    } else {
+      const targetSection = document.getElementById(hash.substring(1));
+      if (targetSection) {
+        targetSection.style.display = 'block';
+        console.log(`#${hash.substring(1)} section displayed`);
+      } else {
+        console.error(`Section ${hash} not found`);
+      }
     }
   }
 
   // Intersection Observer for sections
   function setupIntersectionObserver() {
-    const sections = document.querySelectorAll('.hero, .shop, .testimonials, .faq');
+    const sections = document.querySelectorAll('.hero, .shop, .testimonials, .favorites, .cart, .faq, .newsletter');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -400,30 +543,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render testimonials
   async function renderTestimonials() {
     const grid = document.querySelector('.testimonial-grid');
-    if (!grid) return;
+    if (!grid) {
+      console.error('Testimonial grid not found');
+      return;
+    }
     const data = await fetchTestimonials();
     if (data.length === 0) {
-      grid.innerHTML = '<p>Testimonials unavailable.</p>';
+      grid.innerHTML = '<p>No testimonials available.</p>';
       return;
     }
     grid.innerHTML = data.map(testimonial => `
       <div class="testimonial">
-        <img src="${testimonial.image || '/images/placeholder.png'}" alt="${testimonial.name}" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
+        <img src="${testimonial.image || '/images/placeholder.png'}" alt="${testimonial.name}" width="100" height="100" loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.png'; showToast('Failed to load image: ${testimonial.image}', 'error');" />
         <p>"${testimonial.quote}"</p>
         <h4>${testimonial.name}</h4>
       </div>
     `).join('');
+    console.log('Testimonials rendered');
   }
 
   // Initialize
   async function init() {
     await fetchProducts();
     renderProducts();
+    renderFavorites();
     renderTestimonials();
     updateCartCount();
     updateMiniCart();
-    updateWishlistButtons();
-    handleHashChange();
+    updateFavoriteButtons();
+    setTimeout(handleHashChange, 0); // Ensure DOM is ready
     setupIntersectionObserver();
 
     // Ensure close button event listener
@@ -497,12 +645,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.newsletter-form, .footer-newsletter form').forEach(form => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const emailInput = e.target.querySelector('input[type="email"]');
+      const emailInput = form.querySelector('input[type="email"]');
       const email = emailInput.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showToast('Please enter a valid email address.', 'error');
-        return;
-      }
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
       showToast('Thank you for subscribing!', 'success');
       emailInput.value = '';
     });
@@ -516,11 +664,4 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', debounce(handleHashChange, 100));
 
   init();
-
-  // Cleanup on unload
-  window.addEventListener('unload', () => {
-    document.querySelectorAll('.quick-view-btn, .add-to-cart-btn, .wishlist-btn, .remove-btn, input[type="number"], .carousel-prev, .carousel-next, .close-btn').forEach(el => {
-      el.replaceWith(el.cloneNode(true));
-    });
-  });
 });
